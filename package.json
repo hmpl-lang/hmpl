@@ -1,0 +1,53 @@
+{
+  "name": "hmpl-js",
+  "version": "0.0.4",
+  "description": "🌐 Work with server-side HTML with ease",
+  "main": "dist/hmpl.min.js",
+  "scripts": {
+    "lint": "npx eslint src/**/* --fix",
+    "lint:test": "npx eslint test/**/* --fix"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hmpljs/hmpl"
+  },
+  "bugs": {
+    "url": "https://github.com/hmpljs/hmpl/issues"
+  },
+  "homepage": "https://hmpljs.github.io",
+  "keywords": [
+    "html",
+    "rest",
+    "server",
+    "template",
+    "hmpl",
+    "fetch"
+  ],
+  "author": "Anton Maklakov",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10.12.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.9",
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@babel/preset-typescript": "^7.23.3",
+    "@babel/register": "^7.23.7",
+    "@types/node": "^20.11.17",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "node-html-parser": "^6.1.12"
+  }
+}
