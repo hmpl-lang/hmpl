@@ -1,3 +1,4 @@
+With the new version it will be a different package
 <p align="center">
     <a href="https://www.npmjs.com/package/hmpl-js">
         <img width="200" height="200" src="https://github.com/hmpljs/media/blob/main/logo_transparent.png" alt="hmpl" >
