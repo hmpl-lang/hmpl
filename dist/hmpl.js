@@ -247,7 +247,7 @@
                   return {};
                 }
               } else {
-                if (!optionsId)
+                if (optionsId)
                   createError("id referenced by request not found");
                 return options;
               }

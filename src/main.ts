@@ -258,7 +258,7 @@ const renderTemplate = (
               return {};
             }
           } else {
-            if (!optionsId) createError("id referenced by request not found");
+            if (optionsId) createError("id referenced by request not found");
             return options as HMPLRequestOptions;
           }
         };
