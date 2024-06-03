@@ -93,7 +93,7 @@ The main goal of this new template language is to simplify working with the serv
 ```php
 <div>
   <button id="getTitle" onclick="?">Get Title</button>
-  <h1><?php echo $title; ?></h1>
+  <h1><?php echo $title; ?></h1> <!-- if(){?} -->
 </div>
 ```
  or 
