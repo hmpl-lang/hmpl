@@ -69,7 +69,7 @@ import { compile } from "hmpl-js";
 const templateFn = compile(
   `<div>
     <button class="getHTML">Get HTML!</button>
-    <request src="/api/test" after="click:.getHTML"></template>
+    <request src="/api/test" after="click:.getHTML"></request>
   </div>`
 );
 
