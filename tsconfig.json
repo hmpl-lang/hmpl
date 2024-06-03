@@ -1,8 +1,16 @@
 {
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs",
+      "noImplicitAny": false
+    }
+  },
   "compilerOptions": {
-    "target": "ESNext",
-    "noEmit": true,
+    "module": "ESNext",
+    "checkJs": true,
+    "removeComments": false,
     "declaration": true,
+    "target": "esnext",
     "pretty": true,
     "noImplicitAny": false,
     "allowSyntheticDefaultImports": true,
@@ -11,8 +19,9 @@
     "noUnusedLocals": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "./build"
   },
-  "include": ["./dist/cample-html.js"],
+  "include": ["./src/**/*"],
   "exclude": ["node_modules"]
 }
