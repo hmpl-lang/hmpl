@@ -73,12 +73,13 @@ const templateFn = compile(
   </div>`
 );
 
+const wrapper = document.getElementById("wrapper");
+
 const elementObj = templateFn({
-  credentials: "same-origin",
   get: (prop, value) => {
     if (prop === "response") {
       if (value) {
-        console.log(value);
+        wrapper.appendChild(value);
       }
     }
   },
