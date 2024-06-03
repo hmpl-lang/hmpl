@@ -88,7 +88,38 @@ const elementObj = templateFn({
 
 ### Why hmpl?
 
-The main goal of this new template language is to simplify working with the server by integrating small request structures into HTML. This can be compared to how, in files with a php extension, you could work with the response from the server received through a php request, but at the same time work with it directly through javascript.
+The main goal of this new template language is to simplify working with the server by integrating small request structures into HTML. This can be compared to how, in files with a php extension, you could work with the response from the server received through a php request, but at the same time work with it directly through javascript. Using the example of simply getting the title from a button, you can understand how this template language can simplify your work:
+
+```php
+<button id="getTitle" onclick="?">Get Title</button>
+<h1><?php echo $title; ?></h1>
+```
+ or 
+ 
+```javascript
+import { compile } from "hmpl-js";
+
+const templateFn = compile(
+  `<div>
+    <button class="getTitle">Get Title!</button>
+    <h1><request src="/api/test" after="click:.getHTML"></request></h1>
+  </div>`
+);
+
+const bodyEl = document.querySelector("body");
+
+const elementObj = templateFn({
+  get: (prop, value) => {
+    if (prop === "response") {
+      if (value) {
+        bodyEl.appendChild(value);
+      }
+    }
+  },
+});
+```
+
+Thus, despite the fact that this approach does not imply server-side rendering, it does simplify working with HTML and the server and makes it possible to make requests out of the box safely, as well as write less code than would be done through pure javascript
 
 ## Installation
 
