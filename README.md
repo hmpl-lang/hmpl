@@ -91,8 +91,10 @@ const elementObj = templateFn({
 The main goal of this new template language is to simplify working with the server by integrating small request structures into HTML. This can be compared to how, in files with a php extension, you could work with the response from the server received through a php request, but at the same time work with it directly through javascript. Using the example of simply getting the title from a button, you can understand how this template language can simplify your work:
 
 ```php
-<button id="getTitle" onclick="?">Get Title</button>
-<h1><?php echo $title; ?></h1>
+<div>
+  <button id="getTitle" onclick="?">Get Title</button>
+  <h1><?php echo $title; ?></h1>
+</div>
 ```
  or 
  
