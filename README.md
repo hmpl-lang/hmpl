@@ -29,17 +29,18 @@
 <script src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<request src="/api/test"></template>`
+  `<div>
+    <button class="getHtml">Get HTML!</button>
+    <request src="/api/test" after="click:.getHtml"></template>
+  </div>`
 );
-
-const wrapper = document.getElementById("wrapper");
 
 const elementObj = templateFn({
   credentials: "same-origin",
   get: (prop, value) => {
     if (prop === "response") {
       if (value) {
-        wrapper.appendChild(value);
+        console.log(value);
       }
     }
   },
