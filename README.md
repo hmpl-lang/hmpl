@@ -159,7 +159,7 @@ const templateFn = hmpl.compile(
   `<request src="/api/test"></template>`
 );
 const elementObj = templateFn();
-</scirpt>
+</script>
 ```
 
 Or, if you need to work with hmpl as a module, there is a list of imported functions, such as `compile`:
