@@ -71,7 +71,7 @@ const makeRequest = (
     credentials,
     timeout,
     headers,
-    requestBody
+    body
   } = options;
   const initRequest: RequestInit = {
     method: method.toUpperCase()
@@ -79,8 +79,8 @@ const makeRequest = (
   if (credentials !== undefined) {
     initRequest.credentials = credentials;
   }
-  if (requestBody !== undefined) {
-    initRequest.body = requestBody;
+  if (body !== undefined) {
+    initRequest.body = body;
   }
   if (mode !== undefined) {
     initRequest.mode = mode;

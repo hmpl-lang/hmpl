@@ -16,7 +16,7 @@ export interface HMPLRequestOptions {
   redirect?: RequestRedirect;
   referrerPolicy?: ReferrerPolicy;
   get?: HMPLRequestGet;
-  requestBody?: BodyInit | null;
+  body?: BodyInit | null;
   credentials?: RequestCredentials;
   headers?: HMPLHeaders;
   timeout?: number;

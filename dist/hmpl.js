@@ -72,7 +72,7 @@
         credentials,
         timeout,
         headers,
-        requestBody
+        body
       } = options;
       const initRequest = {
         method: method.toUpperCase()
@@ -80,8 +80,8 @@
       if (credentials !== undefined) {
         initRequest.credentials = credentials;
       }
-      if (requestBody !== undefined) {
-        initRequest.body = requestBody;
+      if (body !== undefined) {
+        initRequest.body = body;
       }
       if (mode !== undefined) {
         initRequest.mode = mode;
