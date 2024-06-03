@@ -29,18 +29,17 @@
 <script src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<div>
-    <button class="getHtml">Get HTML!</button>
-    <request src="/api/test" after="click:.getHtml"></template>
-  </div>`
+  `<request src="/api/test"></request>`
 );
+
+const wrapper = document.getElementById("wrapper");
 
 const elementObj = templateFn({
   credentials: "same-origin",
   get: (prop, value) => {
     if (prop === "response") {
       if (value) {
-        console.log(value);
+        wrapper.appendChild(value);
       }
     }
   },
@@ -68,17 +67,18 @@ const elementObj = templateFn({
 import { compile } from "hmpl-js";
 
 const templateFn = compile(
-  `<request src="/api/test"></template>`
+  `<div>
+    <button class="getHTML">Get HTML!</button>
+    <request src="/api/test" after="click:.getHTML"></template>
+  </div>`
 );
-
-const wrapper = document.getElementById("wrapper");
 
 const elementObj = templateFn({
   credentials: "same-origin",
   get: (prop, value) => {
     if (prop === "response") {
       if (value) {
-        wrapper.appendChild(value);
+        console.log(value);
       }
     }
   },
