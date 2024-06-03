@@ -1,10 +1,9 @@
-With the new version it will be a different package
 <p align="center">
     <a href="https://www.npmjs.com/package/hmpl-js">
         <img width="200" height="200" src="https://github.com/hmpljs/media/blob/main/logo_transparent.png" alt="hmpl" >
     </a>
 </p>
-<h1 align="center">hmpl - work with server-side HTML with ease</h1>
+<h1 align="center">hmpl - template language for working with server-side HTML</h1>
 <div align="center">
 
 [![npm-version](https://img.shields.io/npm/v/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
@@ -13,28 +12,39 @@ With the new version it will be a different package
 
 </div>
 
-<div align="center"><a href="https://hmpljs.github.io">Website</a> • <a href="https://hmpljs.github.io/#/?id=template">Documentation</a>
+<div align="center"><a href="https://hmpljs.github.io">Website</a> • <a href="https://hmpljs.github.io/#/?id=request">Documentation</a>
 </div>
 <br/>
 
 ## About
 
-🌐 hmpl is a small library for working with server-side html. It is based on requests sent to the server via `fetch` and processed into ready-made HTML. The word hmpl is a combination of the old name cample-html into one word. h-html, mpl-cample.
+🌐 hmpl is a small template language for working with server-side HTML. It is based on requests sent to the server via `fetch` and processed into ready-made HTML. The word hmpl is a combination of the old name cample-html into one word. h-html, mpl-cample.
 
 ## Example #1
 
 ### HTML before
 
 ```html
-<div>
-  <template
-    data-hmpl
-    data-src="/api/test"
-    data-method="get"
-  ></template>
-</div>
+<script src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"></script>
+<div id="wrapper"></div>
+<script>
+const templateFn = hmpl.compile(
+  `<request src="/api/test"></template>`
+);
 
-<script src="https://unpkg.com/hmpl-js@0.0.4"></script>
+const wrapper = document.getElementById("wrapper");
+
+const elementObj = templateFn({
+  credentials: "same-origin",
+  get: (prop, value) => {
+    if (prop === "response") {
+      if (value) {
+        wrapper.appendChild(value);
+      }
+    }
+  },
+});
+</script>
 ```
 
 ### Server route - /api/test
@@ -46,26 +56,29 @@ With the new version it will be a different package
 ### HTML after
 
 ```html
-<div>
+<div id="wrapper">
   <div>123</div>
 </div>
-
-<script src="https://unpkg.com/hmpl-js@0.0.4"></script>
 ```
 
 ## Example #2
 
-```javascript
-const templateFn = hmpl.createTemplate(
-  `<template data-hmpl data-src="/api/test" data-method="get"></template>`
+```typescript
+import { compile } from "hmpl-js";
+
+const templateFn = compile(
+  `<request src="/api/test"></template>`
 );
 
-// (After the response arrives from the server) { element = template (HTMLTemplateElement type), status = 200 }
+const wrapper = document.getElementById("wrapper");
+
 const elementObj = templateFn({
   credentials: "same-origin",
   get: (prop, value) => {
-    if (prop === "element") {
-      console.log(value);
+    if (prop === "response") {
+      if (value) {
+        wrapper.appendChild(value);
+      }
     }
   },
 });
@@ -94,7 +107,7 @@ hmpl can be installed in several ways, which are described in this article. This
 This method involves downloading through npm or other package managers.
 
 ```bash
-npm i hmpl
+npm i hmpl-js
 ```
 
 > [Node.js](https://nodejs.org) is required for npm.
@@ -103,13 +116,13 @@ Along the path node-modules/hmpl/dist you can find two files that contain a regu
 
 ### Manual download
 
-You can install the package by simply [downloading](https://unpkg.com/hmpl-js@0.0.4/dist/hmpl.min.js) it as a file and moving it to the project folder.
+You can install the package by simply [downloading](https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js) it as a file and moving it to the project folder.
 
 ```html
 <script src="./hmpl.min.js"></script>
 ```
 
-If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/hmpl-js@0.0.4/dist/hmpl.js).
+If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.js).
 
 ```html
 <script src="./hmpl.js"></script>
@@ -123,7 +136,7 @@ This method involves connecting the file through a third-party resource, which p
 
 ```html
 <script
-  src="https://unpkg.com/hmpl-js@0.0.4"
+  src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"
 ></script>
 <!--
   integrity="sha384-..."
@@ -138,27 +151,23 @@ This resource could be unpkg, skypack or other resources. The examples include u
 After installation using any convenient method described in [Installation](https://hmpljs.github.io/#/?id=installation), you can start working with the server in the following way:
 
 ```html
-<div>
-  <template data-hmpl data-src="/api/test" data-method="get"></template>
-</div>
+<script src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"></script>
+<script>
+const templateFn = hmpl.compile(
+  `<request src="/api/test"></template>`
+);
+const elementObj = templateFn();
+</scirpt>
 ```
 
-Or, if the html method is not suitable, then in hmpl there is a `hmpl` object that provides a list of functions and methods that allow you to conveniently work with the server. Usage example:
+Or, if you need to work with hmpl as a module, there is a list of imported functions, such as `compile`:
 
-```javascript
-const templateFn = hmpl.createTemplate(
-  `<template data-hmpl data-src="/api/test" data-method="get"></template>`
+```typescript
+import { compile } from "hmpl-js";
+const templateFn = hmpl.compile(
+  `<request src="/api/test"></template>`
 );
-
-// (After the response arrives from the server) { element = template (HTMLTemplateElement type), status = 200 }
-const elementObj = templateFn({
-  credentials: "same-origin",
-  get: (prop, value) => {
-    if (prop === "element") {
-      console.log(value);
-    }
-  },
-});
+const elementObj = templateFn();
 ```
 
 These will be the two main ways to interact with the server. In future versions, the functionality will be expanded, but the methods themselves will not change.
