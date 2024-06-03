@@ -88,17 +88,7 @@ const elementObj = templateFn({
 
 ### Why hmpl?
 
-hmpl is easy to use and effective in practice. You can literally download reusable HTML from the server in just a couple of clicks, which will reduce a huge amount of code and also simplify the creation of the user interface. Also, this product is open-source under the [MIT license](https://github.com/hmpljs/hmpl/blob/master/LICENSE), which allows it to be used for commercial purposes.
-
-Here are a few small advantages that the module has:
-
-- Light weight
-- Ability to work with template mounting directly via js
-- Request Status Update
-- Fairly safe HTML processing without outerHTML and similar functions, which minimizes the likelihood of errors
-- Fully documented
-
-And other advantages that will be visible when working with the module.
+The main goal of this new template language is to simplify working with the server by integrating small request structures into HTML. This can be compared to how, in files with a php extension, you could work with the response from the server received through a php request, but at the same time work with it directly through javascript.
 
 ## Installation
 
