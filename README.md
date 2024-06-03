@@ -25,8 +25,8 @@
 ### HTML before
 
 ```html
-<script src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"></script>
 <div id="wrapper"></div>
+<script src="https://unpkg.com/hmpl-js@1.0.0/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
   `<request src="/api/test"></template>`
