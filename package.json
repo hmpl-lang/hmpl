@@ -1,6 +1,6 @@
 {
   "name": "hmpl-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "🌐 Template language for working with server-side HTML",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,8 @@
   "files": [
     "LICENSE",
     "README.md",
-    "dist/"
+    "dist/",
+    "src/"
   ],
   "repository": {
     "type": "git",
