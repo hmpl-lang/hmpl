@@ -167,7 +167,7 @@ Or, if you need to work with hmpl as a module, there is a list of imported funct
 ```typescript
 import { compile } from "hmpl-js";
 const templateFn = hmpl.compile(
-  `<request src="/api/test"></template>`
+  `<request src="/api/test"></request>`
 );
 const elementObj = templateFn();
 ```
