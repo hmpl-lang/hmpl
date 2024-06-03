@@ -156,7 +156,7 @@ After installation using any convenient method described in [Installation](https
 <script src="https://unpkg.com/hmpl-js@1.0.3/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<request src="/api/test"></template>`
+  `<request src="/api/test"></request>`
 );
 const elementObj = templateFn();
 </script>
