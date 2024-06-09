@@ -26,7 +26,7 @@
 
 ```html
 <div id="wrapper"></div>
-<script src="https://unpkg.com/hmpl-js@1.0.3/dist/hmpl.min.js"></script>
+<script src="https://unpkg.com/hmpl-js@1.0.4/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
   `<request src="/api/test"></request>`
@@ -141,13 +141,13 @@ Along the path node-modules/hmpl/dist you can find two files that contain a regu
 
 ### Manual download
 
-You can install the package by simply [downloading](https://unpkg.com/hmpl-js@1.0.3/dist/hmpl.min.js) it as a file and moving it to the project folder.
+You can install the package by simply [downloading](https://unpkg.com/hmpl-js@1.0.4/dist/hmpl.min.js) it as a file and moving it to the project folder.
 
 ```html
 <script src="./hmpl.min.js"></script>
 ```
 
-If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/hmpl-js@1.0.3/dist/hmpl.js).
+If, for some reason, you do not need the minified file, then you can download the full file from this [link](https://unpkg.com/hmpl-js@1.0.4/dist/hmpl.js).
 
 ```html
 <script src="./hmpl.js"></script>
@@ -161,7 +161,7 @@ This method involves connecting the file through a third-party resource, which p
 
 ```html
 <script
-  src="https://unpkg.com/hmpl-js@1.0.3/dist/hmpl.min.js"
+  src="https://unpkg.com/hmpl-js@1.0.4/dist/hmpl.min.js"
 ></script>
 <!--
   integrity="sha384-..."
@@ -176,7 +176,7 @@ This resource could be unpkg, skypack or other resources. The examples include u
 After installation using any convenient method described in [Installation](https://hmpljs.github.io/#/?id=installation), you can start working with the server in the following way:
 
 ```html
-<script src="https://unpkg.com/hmpl-js@1.0.3/dist/hmpl.min.js"></script>
+<script src="https://unpkg.com/hmpl-js@1.0.4/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
   `<request src="/api/test"></request>`
