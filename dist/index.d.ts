@@ -5,7 +5,10 @@ import {
   HMPLTemplateObject,
   HMPLRequest,
   HMPLRequestGet,
-  HMPLHeaders
+  HMPLHeaders,
+  HMPLIdentificationOptions,
+  HMPLCompile,
+  HMPLTemplateFunction
 } from "../build/types";
 
 export { compile };
@@ -15,5 +18,8 @@ export type {
   HMPLTemplateObject,
   HMPLRequest,
   HMPLRequestGet,
-  HMPLHeaders
+  HMPLHeaders,
+  HMPLIdentificationOptions,
+  HMPLCompile,
+  HMPLTemplateFunction
 };

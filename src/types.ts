@@ -27,7 +27,8 @@ export interface HMPLIdentificationOptions {
   id: string;
 }
 
-export interface HMPLData {
+export interface HMPLNodeObj {
+  id: number;
   nodes: null | ChildNode[];
   parentNode: null | ParentNode;
 }
@@ -35,7 +36,6 @@ export interface HMPLData {
 export interface HMPLRequest {
   response: undefined | Element | null | ChildNode[];
   status: number;
-  id?: string;
 }
 
 export interface HMPLTemplateObject {
@@ -44,16 +44,38 @@ export interface HMPLTemplateObject {
   requests?: HMPLRequest[];
 }
 
+export interface HMPLElement {
+  el: Element;
+  id: number;
+  objNode?: HMPLNodeObj;
+}
+
+export interface HMPLData {
+  dataObjects: HMPLNodeObj[];
+  els: HMPLElement[];
+  currentId: number;
+}
+
 export type HMPLRequestFunction = (
+  el: Element,
   options: HMPLRequestOptions | HMPLIdentificationOptions[],
   templateObject: HMPLTemplateObject,
+  data: HMPLData,
+  mainEl?: Element,
   isArray?: boolean,
   reqObject?: HMPLRequest,
-  isRequests?: boolean
+  isRequests?: boolean,
+  currentHMPLElement?: HMPLElement
 ) => void;
 
 export type HMPLRenderFunction = (
   requestFunction: HMPLRequestFunction
 ) => (
   options?: HMPLRequestOptions | HMPLIdentificationOptions[]
+) => HMPLTemplateObject;
+
+export type HMPLCompile = (template: string) => HMPLTemplateFunction;
+
+export type HMPLTemplateFunction = (
+  options?: HMPLIdentificationOptions[] | HMPLRequestOptions
 ) => HMPLTemplateObject;
