@@ -1,6 +1,6 @@
 {
   "name": "hmpl-js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "🌐 Template language for working with server-side HTML",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
