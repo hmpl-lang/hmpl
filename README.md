@@ -3,7 +3,7 @@
         <img width="200" height="200" src="https://github.com/hmpljs/media/blob/main/logo_transparent.png" alt="hmpl" >
     </a>
 </p>
-<h1 align="center">hmpl - template language for fetching HTML from the server</h1>
+<h1 align="center">hmpl - fetching HTML from API</h1>
 <div align="center">
 
 [![npm-version](https://img.shields.io/npm/v/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
