@@ -1,7 +1,7 @@
 {
   "name": "hmpl-js",
   "version": "1.0.5",
-  "description": "HTML+API+Fetch=HMPL",
+  "description": "HTML+Fetch=HMPL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
