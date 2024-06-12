@@ -39,7 +39,7 @@ const elementObj = templateFn({
   get: (prop, value) => {
     if (prop === "response") {
       if (value) {
-        wrapper.appendChild(value.content.firstElementChild);
+        wrapper.appendChild(value.content);
       }
     }
   },
