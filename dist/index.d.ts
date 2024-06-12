@@ -2,7 +2,7 @@ import { compile } from "../build/main";
 
 import {
   HMPLRequestOptions,
-  HMPLResponse,
+  HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
   HMPLHeaders,
@@ -15,7 +15,7 @@ export { compile };
 
 export type {
   HMPLRequestOptions,
-  HMPLResponse,
+  HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
   HMPLHeaders,
