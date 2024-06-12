@@ -69,10 +69,14 @@
         redirect,
         get,
         referrerPolicy,
+        signal,
         credentials,
         timeout,
+        referrer,
         headers,
-        body
+        body,
+        window: windowOption,
+        integrity
       } = options;
       const initRequest = {
         method: method.toUpperCase()
@@ -95,6 +99,22 @@
       if (referrerPolicy !== undefined) {
         initRequest.referrerPolicy = referrerPolicy;
       }
+      if (integrity !== undefined) {
+        initRequest.integrity = integrity;
+      }
+      if (referrer !== undefined) {
+        initRequest.referrer = referrer;
+      }
+      const isHaveSignal = signal !== undefined;
+      if (isHaveSignal) {
+        initRequest.signal = signal;
+      }
+      if (windowOption !== undefined) {
+        initRequest.window = windowOption;
+      }
+      if (options.keepalive !== undefined) {
+        console.warn("keepalive property is not yet supported");
+      }
       if (headers) {
         if (checkObject(headers)) {
           const newHeaders = new Headers();
@@ -116,9 +136,14 @@
         }
       }
       if (timeout) {
-        initRequest.signal = AbortSignal.timeout(timeout);
+        if (!isHaveSignal) {
+          initRequest.signal = AbortSignal.timeout(timeout);
+        } else {
+          console.warn(
+            "The signal property overwrote the AbortSignal from timeout"
+          );
+        }
       }
-      // const isMain = !!mainEl;
       const updateStatus = (status) => {
         if (isRequests) {
           if (reqObject.status !== status) {
