@@ -6,7 +6,7 @@ import {
   HMPLRequest,
   HMPLRequestFunction,
   HMPLRequestOptions,
-  HMPLTemplateObject,
+  HMPLResponse,
   HMPLIdentificationOptions,
   HMPLCompile,
   HMPLTemplateFunction,
@@ -63,7 +63,7 @@ const makeRequest = (
   isRequest: boolean,
   isRequests: boolean,
   options: HMPLRequestOptions = {},
-  templateObject: HMPLTemplateObject,
+  templateObject: HMPLResponse,
   reqObject?: HMPLRequest
 ) => {
   const {
@@ -368,7 +368,7 @@ const renderTemplate = (
             event: string,
             selector: string,
             options: HMPLRequestOptions | HMPLIdentificationOptions[],
-            templateObject: HMPLTemplateObject,
+            templateObject: HMPLResponse,
             data: HMPLData,
             isArray: boolean,
             isRequests: boolean,
@@ -476,7 +476,7 @@ const renderTemplate = (
       reqFn = (
         reqEl: Element,
         options: HMPLRequestOptions | HMPLIdentificationOptions[],
-        templateObject: HMPLTemplateObject,
+        templateObject: HMPLResponse,
         data: HMPLData,
         mainEl: Element,
         isArray: boolean = false
@@ -589,9 +589,9 @@ export const compile: HMPLCompile = (template: string) => {
   ) => {
     const templateFunction: HMPLTemplateFunction = (
       options: HMPLIdentificationOptions[] | HMPLRequestOptions = {}
-    ): HMPLTemplateObject => {
+    ): HMPLResponse => {
       const el = templateEl!.cloneNode(true) as Element;
-      const templateObject: HMPLTemplateObject = {
+      const templateObject: HMPLResponse = {
         response: isRequest ? undefined : el
       };
       if (isRequest) {

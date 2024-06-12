@@ -42,7 +42,7 @@ export interface HMPLRequest {
   status: number;
 }
 
-export interface HMPLTemplateObject {
+export interface HMPLResponse {
   response: undefined | Element | null;
   status?: number;
   requests?: HMPLRequest[];
@@ -63,7 +63,7 @@ export interface HMPLData {
 export type HMPLRequestFunction = (
   el: Element,
   options: HMPLRequestOptions | HMPLIdentificationOptions[],
-  templateObject: HMPLTemplateObject,
+  templateObject: HMPLResponse,
   data: HMPLData,
   mainEl?: Element,
   isArray?: boolean,
@@ -76,10 +76,10 @@ export type HMPLRenderFunction = (
   requestFunction: HMPLRequestFunction
 ) => (
   options?: HMPLRequestOptions | HMPLIdentificationOptions[]
-) => HMPLTemplateObject;
+) => HMPLResponse;
 
 export type HMPLCompile = (template: string) => HMPLTemplateFunction;
 
 export type HMPLTemplateFunction = (
   options?: HMPLIdentificationOptions[] | HMPLRequestOptions
-) => HMPLTemplateObject;
+) => HMPLResponse;
