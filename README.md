@@ -29,14 +29,21 @@
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<div><request src="/api/test"></request></div>`
+  `<request src="/api/test"></request>`
 );
 
 const wrapper = document.getElementById("wrapper");
 
-const elementObj = templateFn();
-
-wrapper.appendChild(elementObj.response);
+const elementObj = templateFn({
+  credentials: "same-origin",
+  get: (prop, value) => {
+    if (prop === "response") {
+      if (value) {
+        wrapper.appendChild(value.content);
+      }
+    }
+  },
+});
 </script>
 ```
 
@@ -50,7 +57,7 @@ wrapper.appendChild(elementObj.response);
 
 ```html
 <div id="wrapper">
-  <div><div>123</div></div>
+  <div>123</div>
 </div>
 ```
 
@@ -68,15 +75,9 @@ const templateFn = compile(
 
 const wrapper = document.getElementById("wrapper");
 
-const elementObj = templateFn({
-  get: (prop, value) => {
-    if (prop === "response") {
-      if (value) {
-        wrapper.appendChild(value);
-      }
-    }
-  },
-});
+const elementObj = templateFn();
+
+wrapper.appendChild(elementObj.response);
 ```
 
 ### Why hmpl?
