@@ -34,16 +34,9 @@ const templateFn = hmpl.compile(
 
 const wrapper = document.getElementById("wrapper");
 
-const elementObj = templateFn({
-  credentials: "same-origin",
-  get: (prop, value) => {
-    if (prop === "response") {
-      if (value) {
-        wrapper.appendChild(value.content);
-      }
-    }
-  },
-});
+const elementObj = templateFn();
+
+wrapper.appendChild(elementObj.response);
 </script>
 ```
 
