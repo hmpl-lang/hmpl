@@ -29,7 +29,7 @@
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<request src="/api/test"></request>`
+  `<div><request src="/api/test"></request></div>`
 );
 
 const wrapper = document.getElementById("wrapper");
@@ -50,7 +50,7 @@ wrapper.appendChild(elementObj.response);
 
 ```html
 <div id="wrapper">
-  <div>123</div>
+  <div><div>123</div></div>
 </div>
 ```
 
