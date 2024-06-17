@@ -98,21 +98,15 @@ import { compile } from "hmpl-js";
 const templateFn = compile(
   `<div>
     <button class="getTitle">Get Title!</button>
-    <h1><request src="/api/test" after="click:.getHTML"></request></h1>
+    <h1><request src="/api/test" after="click:.getTitle"></request></h1>
   </div>`
 );
 
 const bodyEl = document.querySelector("body");
 
-const elementObj = templateFn({
-  get: (prop, value) => {
-    if (prop === "response") {
-      if (value) {
-        bodyEl.appendChild(value);
-      }
-    }
-  },
-});
+const elementObj = templateFn();
+
+bodyEl.appendChild(elementObj.response);
 ```
 
 Thus, despite the fact that this approach does not imply server-side rendering, it does simplify working with HTML and the server and makes it possible to make requests out of the box safely, as well as write less code than would be done through pure javascript
