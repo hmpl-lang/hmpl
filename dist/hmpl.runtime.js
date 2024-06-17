@@ -21,6 +21,9 @@
     const createError = (text) => {
       throw new Error(text);
     };
+    const createWarning = (text) => {
+      console.warn(text);
+    };
     const getIsMethodValid = (method) => {
       return (
         method !== "get" &&
@@ -30,7 +33,7 @@
         method !== "patch"
       );
     };
-    const NODE_ATTR = "REQUEST";
+    const NODE_NAME = "REQUEST";
     const SOURCE_ATTR = `src`;
     const METHOD_ATTR = `method`;
     const ID_ATTR = `ref`;
@@ -113,7 +116,7 @@
         initRequest.window = windowOption;
       }
       if (options.keepalive !== undefined) {
-        console.warn("keepalive property is not yet supported");
+        createWarning("keepalive property is not yet supported");
       }
       if (headers) {
         if (checkObject(headers)) {
@@ -139,7 +142,7 @@
         if (!isHaveSignal) {
           initRequest.signal = AbortSignal.timeout(timeout);
         } else {
-          console.warn(
+          createWarning(
             "The signal property overwrote the AbortSignal from timeout"
           );
         }
@@ -248,14 +251,24 @@
             const isAll = modeAttr === "all";
             let nodeId = -1;
             if (mainEl) {
-              const nodes = mainEl.childNodes;
-              for (let i = 0; i < nodes.length; i++) {
-                const node = nodes[i];
-                if (node === el) {
-                  nodeId = i;
-                  break;
+              let id = -2;
+              const getNodeId = (currentEl) => {
+                id++;
+                if (currentEl === el) {
+                  nodeId = id;
+                  return true;
+                } else {
+                  for (let i = 0; i < currentEl.childNodes.length; i++) {
+                    const newNode = currentEl.childNodes.item(i);
+                    if (newNode.nodeType === Node.ELEMENT_NODE) {
+                      if (getNodeId(newNode)) {
+                        break;
+                      }
+                    }
+                  }
                 }
-              }
+              };
+              getNodeId(mainEl);
             }
             const getOptions = (options, isArray = false) => {
               if (isArray) {
@@ -363,6 +376,9 @@
                 currentHMPLElement
               ) => {
                 const els = reqMainEl.querySelectorAll(selector);
+                if (els.length === 0) {
+                  createError("Selectors nodes not found");
+                }
                 const afterFn = isAll
                   ? () => {
                       reqFunction(
@@ -451,7 +467,10 @@
       if (isRequest) {
         reqFn = renderEl(currentEl);
       } else {
-        const requests = currentEl.querySelectorAll(`${NODE_ATTR}`);
+        const requests = currentEl.querySelectorAll(`${NODE_NAME}`);
+        if (requests.length === 0) {
+          createError(`${NODE_NAME} not found`);
+        }
         const algorithm = [];
         for (let i = 0; i < requests.length; i++) {
           const currentReqEl = requests[i];
@@ -538,6 +557,7 @@
         createError(
           "template was not found or the type of the passed value is not string"
         );
+      if (!template) createError("template empty");
       const getElement = (template) => {
         const elementDocument = new DOMParser().parseFromString(
           `<template>${template}</template>`,
@@ -570,7 +590,7 @@
         return currentEl;
       };
       const templateEl = getElement(template);
-      const isRequest = templateEl.nodeName === NODE_ATTR;
+      const isRequest = templateEl.nodeName === NODE_NAME;
       const renderFn = (requestFunction) => {
         const templateFunction = (options = {}) => {
           const el = templateEl.cloneNode(true);
@@ -586,17 +606,25 @@
             currentId: 0
           };
           if (!isRequest) {
-            const nodes = el.childNodes;
-            for (let id = 0; id < nodes.length; id++) {
-              const node = nodes[id];
-              if (node.nodeName === NODE_ATTR) {
+            let id = -2;
+            const getEls = (currentEl) => {
+              id++;
+              if (currentEl.nodeName === NODE_NAME) {
                 const elObj = {
-                  el: node,
+                  el: currentEl,
                   id
                 };
                 data.els.push(elObj);
+              } else {
+                for (let i = 0; i < currentEl.childNodes.length; i++) {
+                  const newNode = currentEl.childNodes.item(i);
+                  if (newNode.nodeType === Node.ELEMENT_NODE) {
+                    getEls(newNode);
+                  }
+                }
               }
-            }
+            };
+            getEls(el);
           }
           if (checkObject(options)) {
             validOptions(options);

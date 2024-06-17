@@ -23,6 +23,9 @@ const checkFunction = (val: any) => {
 const createError = (text: string) => {
   throw new Error(text);
 };
+const createWarning = (text: string) => {
+  console.warn(text);
+};
 const getIsMethodValid = (method: string) => {
   return (
     method !== "get" &&
@@ -32,7 +35,7 @@ const getIsMethodValid = (method: string) => {
     method !== "patch"
   );
 };
-const NODE_ATTR = "REQUEST";
+const NODE_NAME = "REQUEST";
 const SOURCE_ATTR = `src`;
 const METHOD_ATTR = `method`;
 const ID_ATTR = `ref`;
@@ -116,7 +119,7 @@ const makeRequest = (
     initRequest.window = windowOption;
   }
   if ((options as any).keepalive !== undefined) {
-    console.warn("keepalive property is not yet supported");
+    createWarning("keepalive property is not yet supported");
   }
   if (headers) {
     if (checkObject(headers)) {
@@ -142,7 +145,7 @@ const makeRequest = (
     if (!isHaveSignal) {
       initRequest.signal = AbortSignal.timeout(timeout);
     } else {
-      console.warn(
+      createWarning(
         "The signal property overwrote the AbortSignal from timeout"
       );
     }
@@ -256,14 +259,24 @@ const renderTemplate = (
         const isAll = modeAttr === "all";
         let nodeId = -1;
         if (mainEl) {
-          const nodes = mainEl.childNodes;
-          for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
-            if (node === el) {
-              nodeId = i;
-              break;
+          let id = -2;
+          const getNodeId = (currentEl: ChildNode) => {
+            id++;
+            if (currentEl === el) {
+              nodeId = id;
+              return true;
+            } else {
+              for (let i = 0; i < currentEl.childNodes.length; i++) {
+                const newNode = currentEl.childNodes.item(i);
+                if (newNode.nodeType === Node.ELEMENT_NODE) {
+                  if (getNodeId(newNode)) {
+                    break;
+                  }
+                }
+              }
             }
-          }
+          };
+          getNodeId(mainEl);
         }
         const getOptions = (
           options: HMPLRequestOptions | HMPLIdentificationOptions[],
@@ -377,6 +390,9 @@ const renderTemplate = (
             currentHMPLElement?: HMPLElement
           ) => {
             const els = reqMainEl!.querySelectorAll(selector);
+            if (els.length === 0) {
+              createError("Selectors nodes not found");
+            }
             const afterFn = isAll
               ? () => {
                   reqFunction(
@@ -466,7 +482,10 @@ const renderTemplate = (
   if (isRequest) {
     reqFn = renderEl(currentEl);
   } else {
-    const requests = currentEl.querySelectorAll(`${NODE_ATTR}`);
+    const requests = currentEl.querySelectorAll(`${NODE_NAME}`);
+    if (requests.length === 0) {
+      createError(`${NODE_NAME} not found`);
+    }
     const algorithm: HMPLRequestFunction[] = [];
     for (let i = 0; i < requests.length; i++) {
       const currentReqEl = requests[i];
@@ -551,6 +570,7 @@ export const compile: HMPLCompile = (template: string) => {
     createError(
       "template was not found or the type of the passed value is not string"
     );
+  if (!template) createError("template empty");
   const getElement = (template: string) => {
     const elementDocument = new DOMParser().parseFromString(
       `<template>${template}</template>`,
@@ -583,7 +603,7 @@ export const compile: HMPLCompile = (template: string) => {
     return currentEl;
   };
   const templateEl = getElement(template);
-  const isRequest = templateEl!.nodeName === NODE_ATTR;
+  const isRequest = templateEl!.nodeName === NODE_NAME;
   const renderFn: HMPLRenderFunction = (
     requestFunction: HMPLRequestFunction
   ) => {
@@ -603,17 +623,25 @@ export const compile: HMPLCompile = (template: string) => {
         currentId: 0
       };
       if (!isRequest) {
-        const nodes = el.childNodes;
-        for (let id = 0; id < nodes.length; id++) {
-          const node = nodes[id];
-          if (node.nodeName === NODE_ATTR) {
+        let id = -2;
+        const getEls = (currentEl: ChildNode) => {
+          id++;
+          if (currentEl.nodeName === NODE_NAME) {
             const elObj: HMPLElement = {
-              el: node as Element,
+              el: currentEl as Element,
               id
             };
             data.els.push(elObj);
+          } else {
+            for (let i = 0; i < currentEl.childNodes.length; i++) {
+              const newNode = currentEl.childNodes.item(i);
+              if (newNode.nodeType === Node.ELEMENT_NODE) {
+                getEls(newNode);
+              }
+            }
           }
-        }
+        };
+        getEls(el);
       }
       if (checkObject(options)) {
         validOptions(options as HMPLRequestOptions);

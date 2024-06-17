@@ -1,6 +1,6 @@
 {
   "name": "hmpl-js",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Template language for fetching HTML from API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,7 +27,7 @@
   "homepage": "https://hmpljs.github.io",
   "keywords": [
     "html",
-    "rest",
+    "api",
     "server",
     "template",
     "hmpl",
