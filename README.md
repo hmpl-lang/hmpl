@@ -29,7 +29,7 @@
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<div><request src="/api/test"></request></div>`
+  `<div><request src="http://localhost:8000/api/test"></request></div>`
 );
 
 const wrapper = document.getElementById("wrapper");
@@ -40,7 +40,7 @@ wrapper.appendChild(obj.response);
 </script>
 ```
 
-### Server route - /api/test
+### Api route - /api/test
 
 ```html
 <span>123</span>
