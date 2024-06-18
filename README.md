@@ -40,7 +40,7 @@ wrapper.appendChild(obj.response);
 </script>
 ```
 
-### Api route - /api/test
+### API route - /api/test
 
 ```html
 <span>123</span>
