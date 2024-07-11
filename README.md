@@ -30,11 +30,11 @@
 <script>
 const templateFn = hmpl.compile(
   `<div>
-    { 
-      {
-        "src":"http://localhost:8000/api/test" 
-      } 
-    }
+     { 
+       {
+         "src":"http://localhost:8000/api/test" 
+       } 
+     }
   </div>`
 );
 
@@ -213,7 +213,13 @@ Module has its own loader for files with the `.hmpl` extension. You can include 
 
 ### main.hmpl
 ```hmpl
-<div><request src="/api/test"></request></div>
+<div>
+  { 
+    {
+      "src":"/api/test" 
+    } 
+  }
+</div>
 ```
 ### main.js
 ```javascript
