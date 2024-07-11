@@ -11,7 +11,9 @@ import {
   HMPLCompile,
   HMPLTemplateFunction,
   HMPLData,
-  HMPLElement
+  HMPLElement,
+  HMPLRequestObject,
+  HMPLCurrentRequest
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -35,12 +37,12 @@ const getIsMethodValid = (method: string) => {
     method !== "patch"
   );
 };
-const NODE_NAME = "REQUEST";
-const SOURCE_ATTR = `src`;
-const METHOD_ATTR = `method`;
-const ID_ATTR = `ref`;
-const AFTER_ATTR = `after`;
-const MODE_ATTR = `mode`;
+const SOURCE = `src`;
+const METHOD = `method`;
+const ID = `ref`;
+const AFTER = `after`;
+const MODE = `mode`;
+const MAIN_REGEX = /([{}])/;
 
 const getResponseElements = (response: string) => {
   if (typeof response !== "string") createError("Bad response");
@@ -236,48 +238,29 @@ const makeRequest = (
     });
 };
 const renderTemplate = (
-  currentEl: Element,
+  currentEl: Element | Comment,
   fn: HMPLRenderFunction,
+  requests: HMPLRequestObject[],
   isRequest: boolean = false
 ) => {
-  const renderEl = (el: Element, mainEl?: Element) => {
-    const source = el.getAttribute(SOURCE_ATTR);
+  const renderRequest = (req: HMPLRequestObject, mainEl?: Element) => {
+    const source = req.src;
     if (source) {
-      const method = (el.getAttribute(METHOD_ATTR) || "GET").toLowerCase();
+      const method = (req.method || "GET").toLowerCase();
       if (getIsMethodValid(method)) {
         createError(
-          `${METHOD_ATTR} has only GET, POST, PUT, PATCH or DELETE values`
+          `${METHOD} has only GET, POST, PUT, PATCH or DELETE values`
         );
       } else {
-        const after = el.getAttribute(AFTER_ATTR);
+        const after = req.after;
         if (after && isRequest) createError("EventTarget is undefined");
-        const oldMode = el.getAttribute(MODE_ATTR);
+        const oldMode = req.mode;
         const modeAttr = (oldMode || "all").toLowerCase();
         if (modeAttr !== "one" && modeAttr !== "all")
-          createError(`${MODE_ATTR} has only ONE or ALL values`);
-        const optionsId = el.getAttribute(ID_ATTR);
+          createError(`${MODE} has only ONE or ALL values`);
+        const optionsId = req.ref;
         const isAll = modeAttr === "all";
-        let nodeId = -1;
-        if (mainEl) {
-          let id = -2;
-          const getNodeId = (currentEl: ChildNode) => {
-            id++;
-            if (currentEl === el) {
-              nodeId = id;
-              return true;
-            } else {
-              for (let i = 0; i < currentEl.childNodes.length; i++) {
-                const newNode = currentEl.childNodes.item(i);
-                if (newNode.nodeType === Node.ELEMENT_NODE) {
-                  if (getNodeId(newNode)) {
-                    break;
-                  }
-                }
-              }
-            }
-          };
-          getNodeId(mainEl);
-        }
+        const nodeId = req.nodeId;
         const getOptions = (
           options: HMPLRequestOptions | HMPLIdentificationOptions[],
           isArray: boolean = false
@@ -369,7 +352,7 @@ const renderTemplate = (
             source,
             isRequest,
             isRequests,
-            currentOptions,
+            currentOptions as HMPLRequestOptions,
             templateObject,
             reqObject
           );
@@ -444,12 +427,11 @@ const renderTemplate = (
               isRequests = false,
               currentHMPLElement
             ) => {
-              const currentOptions = getOptions(options, isArray);
               setEvents(
                 reqEl,
                 event,
                 selector,
-                currentOptions,
+                options,
                 templateObject,
                 data,
                 isArray,
@@ -460,15 +442,11 @@ const renderTemplate = (
               );
             };
           } else {
-            createError(
-              `${AFTER_ATTR} attribute doesn't work without EventTargets`
-            );
+            createError(`${AFTER} attribute doesn't work without EventTargets`);
           }
         } else {
           if (oldMode) {
-            createError(
-              `${MODE_ATTR} attribute doesn't work without ${AFTER_ATTR}`
-            );
+            createError(`${MODE} attribute doesn't work without ${AFTER}`);
           }
         }
         return requestFunction;
@@ -480,16 +458,37 @@ const renderTemplate = (
 
   let reqFn: any;
   if (isRequest) {
-    reqFn = renderEl(currentEl);
+    requests[0].el = currentEl as Comment;
+    reqFn = renderRequest(requests[0]);
   } else {
-    const requests = currentEl.querySelectorAll(`${NODE_NAME}`);
-    if (requests.length === 0) {
-      createError(`${NODE_NAME} not found`);
-    }
+    let id = -2;
+    const getRequests = (currrentElement: ChildNode) => {
+      id++;
+      if (currrentElement.nodeType == 8) {
+        let value = currrentElement.nodeValue;
+        if (value && value.startsWith("hmpl")) {
+          value = value.slice(4);
+          const currentIndex = Number(value);
+          const currentRequest = requests[currentIndex];
+          if (Number.isNaN(currentIndex) || currentRequest === undefined) {
+            createError("Request index error");
+          }
+          currentRequest.el = currrentElement as Comment;
+          currentRequest.nodeId = id;
+        }
+      }
+      if (currrentElement.hasChildNodes()) {
+        const chNodes = currrentElement.childNodes;
+        for (let i = 0; i < chNodes.length; i++) {
+          getRequests(chNodes[i]);
+        }
+      }
+    };
+    getRequests(currentEl);
     const algorithm: HMPLRequestFunction[] = [];
     for (let i = 0; i < requests.length; i++) {
-      const currentReqEl = requests[i];
-      algorithm.push(renderEl(currentReqEl, currentEl)!);
+      const currentRequest = requests[i];
+      algorithm.push(renderRequest(currentRequest, currentEl as Element)!);
     }
     if (requests.length > 1) {
       reqFn = (
@@ -532,11 +531,11 @@ const renderTemplate = (
         templateObject.requests = requests;
       };
     } else {
-      const el = requests[0];
-      if (el.parentNode === null) {
+      const currentRequest = requests[0];
+      if (currentRequest.el!.parentNode === null) {
         createError(`"parentNode" is null`);
       }
-      reqFn = renderEl(el, currentEl);
+      reqFn = renderRequest(currentRequest, currentEl as Element);
     }
   }
   return fn(reqFn!);
@@ -571,7 +570,100 @@ export const compile: HMPLCompile = (template: string) => {
       "template was not found or the type of the passed value is not string"
     );
   if (!template) createError("template empty");
-  const getElement = (template: string) => {
+  const requests: HMPLRequestObject[] = [];
+  const templateArr = template.split(MAIN_REGEX).filter(Boolean);
+  let currentBracketId = -1;
+  let previousBracket: boolean | undefined = undefined;
+  let currentRequest: undefined | HMPLCurrentRequest;
+  let currentData = "";
+  for (let i = 0; i < templateArr.length; i++) {
+    const text = templateArr[i];
+    const isOpen = text === "{";
+    const isClose = text === "}";
+    if (isOpen) {
+      if (currentBracketId > 0) {
+        createError("Object nesting error");
+      }
+      if (currentBracketId === -1) {
+        currentRequest = {
+          startId: i,
+          endId: NaN
+        };
+      } else {
+        if (currentRequest) {
+          currentData += text;
+        }
+      }
+      currentBracketId++;
+      previousBracket = true;
+    } else if (isClose) {
+      if (previousBracket && currentBracketId === 0) {
+        createError("There are no query objects between the brackets");
+      }
+      if (currentBracketId === -1) {
+        createError("Template error");
+      } else {
+        if (--currentBracketId === -1 && previousBracket !== undefined) {
+          const prepareData = (text: string) => {
+            text = text.trim();
+            text = text.replace(/\r?\n|\r/g, "");
+            return text;
+          };
+          const stringData = prepareData(currentData);
+          const parsedData = JSON.parse(stringData);
+          for (const key in parsedData) {
+            const value = parsedData[key];
+            if (
+              key !== SOURCE &&
+              key !== METHOD &&
+              key !== ID &&
+              key !== AFTER &&
+              key !== MODE
+            )
+              createError(`Property ${key} is not processed`);
+            if (typeof value !== "string") {
+              createError(`The value of the property ${key} must be a string`);
+            }
+          }
+          currentRequest!.endId = i;
+          const requestObject = {
+            ...parsedData,
+            ...currentRequest!
+          };
+          requests.push(requestObject as HMPLRequestObject);
+          previousBracket = undefined;
+          currentRequest = undefined;
+          currentData = "";
+        } else {
+          if (currentRequest) {
+            currentData += text;
+          }
+          previousBracket = false;
+        }
+      }
+    } else {
+      if (currentRequest) {
+        currentData += text;
+      }
+    }
+  }
+  if (requests.length === 0) {
+    createError(`Request not found`);
+  }
+  let len = 0;
+  for (let i = 0; i < requests.length; i++) {
+    const request = requests[i];
+    const comment = `<!--hmpl${i}-->`;
+    const { startId, endId } = request;
+    const currentLen = endId! - startId!;
+    templateArr.splice(startId! - len, currentLen + 1, comment);
+    len += endId! - startId!;
+    delete request.startId;
+    delete request.endId;
+  }
+  template = templateArr.join("");
+  let isRequest = false;
+  const getElement = (template: string): Element | Comment | null => {
     const elementDocument = new DOMParser().parseFromString(
       `<template>${template}</template>`,
       "text/html"
@@ -579,7 +671,9 @@ export const compile: HMPLCompile = (template: string) => {
     const elWrapper = elementDocument.childNodes[0].childNodes[0]
       .firstChild as HTMLTemplateElement;
     if (elWrapper.content.children.length > 1) {
-      createError("Template include only one node with type 'Element'");
+      createError(
+        `Template include only one node with type "Element" or "Comment"`
+      );
     }
     const prepareNode = (node: ChildNode) => {
       switch (node.nodeType) {
@@ -598,12 +692,21 @@ export const compile: HMPLCompile = (template: string) => {
       }
     };
     prepareNode(elWrapper.content.childNodes[0]);
-    const currentEl = elWrapper.content.firstElementChild;
-    if (!currentEl) createError("Element is undefined");
+    let currentEl: Element | Comment | null =
+      elWrapper.content.firstElementChild;
+    if (!currentEl) {
+      const comment = elWrapper.content.firstChild;
+      const isComment = comment?.nodeType === 8;
+      if (isComment) {
+        isRequest = isComment;
+        currentEl = comment as Comment;
+      } else {
+        createError("Element is undefined");
+      }
+    }
     return currentEl;
   };
   const templateEl = getElement(template);
-  const isRequest = templateEl!.nodeName === NODE_NAME;
   const renderFn: HMPLRenderFunction = (
     requestFunction: HMPLRequestFunction
   ) => {
@@ -624,24 +727,26 @@ export const compile: HMPLCompile = (template: string) => {
       };
       if (!isRequest) {
         let id = -2;
-        const getEls = (currentEl: ChildNode) => {
+        const getRequests = (currrentElement: ChildNode) => {
           id++;
-          if (currentEl.nodeName === NODE_NAME) {
-            const elObj: HMPLElement = {
-              el: currentEl as Element,
-              id
-            };
-            data.els.push(elObj);
-          } else {
-            for (let i = 0; i < currentEl.childNodes.length; i++) {
-              const newNode = currentEl.childNodes.item(i);
-              if (newNode.nodeType === Node.ELEMENT_NODE) {
-                getEls(newNode);
-              }
+          if (currrentElement.nodeType == 8) {
+            const value = currrentElement.nodeValue;
+            if (value && value.startsWith("hmpl")) {
+              const elObj: HMPLElement = {
+                el: currrentElement as Element,
+                id
+              };
+              data.els.push(elObj);
+            }
+          }
+          if (currrentElement.hasChildNodes()) {
+            const chNodes = currrentElement.childNodes;
+            for (let i = 0; i < chNodes.length; i++) {
+              getRequests(chNodes[i]);
             }
           }
         };
-        getEls(el);
+        getRequests(el);
       }
       if (checkObject(options)) {
         validOptions(options as HMPLRequestOptions);
@@ -667,5 +772,5 @@ export const compile: HMPLCompile = (template: string) => {
     };
     return templateFunction;
   };
-  return renderTemplate(templateEl as Element, renderFn, isRequest);
+  return renderTemplate(templateEl as Element, renderFn, requests, isRequest);
 };

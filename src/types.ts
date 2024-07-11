@@ -26,6 +26,22 @@ export interface HMPLRequestOptions {
   timeout?: number;
 }
 
+export interface HMPLRequestObject {
+  src: string;
+  method: string;
+  ref?: string;
+  after?: string;
+  mode?: string;
+  startId?: number;
+  endId?: number;
+  el?: Comment;
+  nodeId?: number;
+}
+
+export interface HMPLTemplate {
+  requests: HMPLRequestObject[];
+}
+
 export interface HMPLIdentificationOptions {
   options: HMPLRequestOptions;
   id: string;
@@ -35,6 +51,11 @@ export interface HMPLNodeObj {
   id: number;
   nodes: null | ChildNode[];
   parentNode: null | ParentNode;
+}
+
+export interface HMPLCurrentRequest {
+  startId: number;
+  endId: number;
 }
 
 export interface HMPLRequest {
