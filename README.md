@@ -29,7 +29,13 @@
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
 const templateFn = hmpl.compile(
-  `<div><request src="http://localhost:8000/api/test"></request></div>`
+  `<div>
+  { 
+    {
+      "src":"http://localhost:8000/api/test" 
+    } 
+  }
+</div>`
 );
 
 const wrapper = document.getElementById("wrapper");
@@ -60,7 +66,11 @@ wrapper.appendChild(obj.response);
 import { compile } from "hmpl-js";
 
 const templateFn = compile(
-  `<request src="/api/test"></request>`
+  `{ 
+    {
+      "src":"/api/test" 
+    } 
+  }`
 );
 
 const wrapper = document.getElementById("wrapper");
@@ -95,7 +105,14 @@ import { compile } from "hmpl-js";
 const templateFn = compile(
   `<div>
     <button class="getTitle">Get Title!</button>
-    <h1><request src="/api/test" after="click:.getTitle"></request></h1>
+    <h1>
+      { 
+        {
+          "src":"http://localhost:8000/api/test",
+          "after":"click:.getTitle"
+        } 
+      }
+    </h1>
   </div>`
 );
 
@@ -163,8 +180,12 @@ After installation using any convenient method described in [Installation](https
 ```html
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
-const templateFn = hmpl.compile(
-  `<request src="/api/test"></request>`
+const templateFn = compile(
+  `{ 
+    {
+      "src":"/api/test" 
+    } 
+  }`
 );
 const elementObj = templateFn();
 </script>
@@ -174,8 +195,12 @@ Or, if you need to work with hmpl as a module, there is a list of imported funct
 
 ```typescript
 import { compile } from "hmpl-js";
-const templateFn = hmpl.compile(
-  `<request src="/api/test"></request>`
+const templateFn = compile(
+  `{ 
+    {
+      "src":"/api/test" 
+    } 
+  }`
 );
 const elementObj = templateFn();
 ```
