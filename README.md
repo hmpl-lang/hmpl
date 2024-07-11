@@ -30,12 +30,12 @@
 <script>
 const templateFn = hmpl.compile(
   `<div>
-  { 
-    {
-      "src":"http://localhost:8000/api/test" 
-    } 
-  }
-</div>`
+    { 
+      {
+        "src":"http://localhost:8000/api/test" 
+      } 
+    }
+  </div>`
 );
 
 const wrapper = document.getElementById("wrapper");
@@ -67,10 +67,10 @@ import { compile } from "hmpl-js";
 
 const templateFn = compile(
   `{ 
-    {
-      "src":"/api/test" 
-    } 
-  }`
+     {
+       "src":"/api/test" 
+     } 
+   }`
 );
 
 const wrapper = document.getElementById("wrapper");
@@ -182,10 +182,10 @@ After installation using any convenient method described in [Installation](https
 <script>
 const templateFn = compile(
   `{ 
-    {
-      "src":"/api/test" 
-    } 
-  }`
+     {
+       "src":"/api/test" 
+     } 
+   }`
 );
 const elementObj = templateFn();
 </script>
@@ -197,10 +197,10 @@ Or, if you need to work with hmpl as a module, there is a list of imported funct
 import { compile } from "hmpl-js";
 const templateFn = compile(
   `{ 
-    {
-      "src":"/api/test" 
-    } 
-  }`
+     {
+       "src":"/api/test" 
+     } 
+   }`
 );
 const elementObj = templateFn();
 ```
