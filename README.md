@@ -44,8 +44,8 @@
 
   /**
    * obj = {
-   * response: div;
-   * status: 200;
+   *  response: div,
+   *  status: 200
    * }
    */
 
@@ -202,9 +202,7 @@ The non-minified file is larger in size, but it is there as it is with all the f
 This method involves connecting the file through a third-party resource, which provides the ability to obtain a javascript file from npm via a link.
 
 ```html
-<script
-  src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"
-></script>
+<script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <!--
   integrity="sha384-..."
   crossorigin="anonymous"
@@ -220,14 +218,14 @@ After installation using any convenient method described in [Installation](https
 ```html
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
-const templateFn = compile(
-  `{ 
+  const templateFn = compile(
+    `{ 
      {
        "src":"/api/test" 
      } 
    }`
-);
-const elementObj = templateFn();
+  );
+  const elementObj = templateFn();
 </script>
 ```
 
@@ -252,16 +250,19 @@ These will be the two main ways to interact with the server. In future versions,
 Module has its own loader for files with the `.hmpl` extension. You can include [hmpl-loader](https://www.npmjs.com/package/hmpl-loader) and use the template language syntax in separate files:
 
 ### main.hmpl
+
 ```hmpl
 <div>
-  { 
+  {
     {
-      "src":"/api/test" 
-    } 
+      "src":"/api/test"
+    }
   }
 </div>
 ```
+
 ### main.js
+
 ```javascript
 const templateFn = require("./main.hmpl");
 
