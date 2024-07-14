@@ -97,8 +97,9 @@ The main goal of this new template language is to simplify working with the serv
   <h1><?php echo $title; ?></h1> <!-- if(){?} -->
 </div>
 ```
- or 
- 
+
+or
+
 ```javascript
 import { compile } from "hmpl-js";
 
@@ -123,7 +124,39 @@ const elementObj = templateFn();
 bodyEl.appendChild(elementObj.response);
 ```
 
-Thus, despite the fact that this approach does not imply server-side rendering, it does simplify working with HTML and the server and makes it possible to make requests out of the box safely, as well as write less code than would be done through pure javascript
+Thus, despite the fact that this approach does not imply server-side rendering, it does simplify working with HTML and the server and makes it possible to make requests out of the box safely, as well as write less code than would be done through pure javascript.
+
+Also, the main advantage of hmpl is the simplicity and flexibility of working with HTML, which comes with the API. Let's say you can simply make a loop for 1000 iterations and add everything to one DOM node at once, without doing similar code on the server side.
+
+```javascript
+import { compile } from "hmpl-js";
+
+const templateFn = compile(
+  `<div>
+     { 
+       {
+         "src":"http://localhost:8000/api/test"
+       } 
+     }
+  </div>`
+);
+
+const bodyEl = document.querySelector("body");
+
+const elementObj = templateFn({
+  get: (prop, value) => {
+    if (prop === "response") {
+      if (value) {
+        for (let i = 0; i < 1000; i++) {
+          bodyEl.appendChild(value.cloneNode(true));
+        }
+      }
+    }
+  },
+});
+```
+
+Direct access to the node allows you to interact with the DOM via js without additional `querySelector`.
 
 ## Installation
 
