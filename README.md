@@ -26,7 +26,7 @@
 
 ```html
 <div id="wrapper"></div>
-<script src="https://unpkg.com/hmpl-js@2.0.0/dist/hmpl.min.js"></script>
+<script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
 <script>
   const templateFn = hmpl.compile(
     `<div>
