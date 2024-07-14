@@ -1,4 +1,4 @@
-import { compile } from "../build/main";
+import { compile, stringify } from "../build/main";
 
 import {
   HMPLRequestOptions,
@@ -8,10 +8,11 @@ import {
   HMPLHeaders,
   HMPLIdentificationOptions,
   HMPLCompile,
-  HMPLTemplateFunction
+  HMPLTemplateFunction,
+  HMPLRequestData
 } from "../build/types";
 
-export { compile };
+export { compile, stringify };
 
 export type {
   HMPLRequestOptions,
@@ -21,5 +22,6 @@ export type {
   HMPLHeaders,
   HMPLIdentificationOptions,
   HMPLCompile,
-  HMPLTemplateFunction
+  HMPLTemplateFunction,
+  HMPLRequestData
 };

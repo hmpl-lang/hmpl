@@ -26,20 +26,23 @@ export interface HMPLRequestOptions {
   timeout?: number;
 }
 
-export interface HMPLRequestObject {
-  src: string;
-  method: string;
-  ref?: string;
-  after?: string;
-  mode?: string;
+export interface HMPLRequestsObject extends HMPLRequestData {
   startId?: number;
   endId?: number;
   el?: Comment;
   nodeId?: number;
 }
 
+export interface HMPLRequestData {
+  src: string;
+  method: string;
+  ref?: string;
+  after?: string;
+  mode?: string;
+}
+
 export interface HMPLTemplate {
-  requests: HMPLRequestObject[];
+  requests: HMPLRequestsObject[];
 }
 
 export interface HMPLIdentificationOptions {

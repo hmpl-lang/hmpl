@@ -1,4 +1,4 @@
 "use strict";
-import { compile } from "../build/main";
+import { compile, stringify } from "../build/main";
 
-export { compile };
+export { compile, stringify };

@@ -547,6 +547,9 @@
         }
       }
     };
+    const stringify = (data) => {
+      return JSON.stringify(data);
+    };
     /**
      * @param {string} template
      */
@@ -746,7 +749,8 @@
     };
 
     const hmpl = {
-      compile
+      compile,
+      stringify
     };
     return hmpl;
   })();

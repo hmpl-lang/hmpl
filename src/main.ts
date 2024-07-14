@@ -12,8 +12,9 @@ import {
   HMPLTemplateFunction,
   HMPLData,
   HMPLElement,
-  HMPLRequestObject,
-  HMPLCurrentRequest
+  HMPLRequestsObject,
+  HMPLCurrentRequest,
+  HMPLRequestData
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -240,10 +241,10 @@ const makeRequest = (
 const renderTemplate = (
   currentEl: Element | Comment,
   fn: HMPLRenderFunction,
-  requests: HMPLRequestObject[],
+  requests: HMPLRequestsObject[],
   isRequest: boolean = false
 ) => {
-  const renderRequest = (req: HMPLRequestObject, mainEl?: Element) => {
+  const renderRequest = (req: HMPLRequestsObject, mainEl?: Element) => {
     const source = req.src;
     if (source) {
       const method = (req.method || "GET").toLowerCase();
@@ -564,13 +565,18 @@ const validIdentificationOptionsArray = (
     }
   }
 };
+
+export const stringify = (data: HMPLRequestData) => {
+  return JSON.stringify(data);
+};
+
 export const compile: HMPLCompile = (template: string) => {
   if (typeof template !== "string")
     createError(
       "template was not found or the type of the passed value is not string"
     );
   if (!template) createError("template empty");
-  const requests: HMPLRequestObject[] = [];
+  const requests: HMPLRequestsObject[] = [];
   const templateArr = template.split(MAIN_REGEX).filter(Boolean);
   let currentBracketId = -1;
   let previousBracket: boolean | undefined = undefined;
@@ -630,7 +636,7 @@ export const compile: HMPLCompile = (template: string) => {
             ...parsedData,
             ...currentRequest!
           };
-          requests.push(requestObject as HMPLRequestObject);
+          requests.push(requestObject as HMPLRequestsObject);
           previousBracket = undefined;
           currentRequest = undefined;
           currentData = "";
