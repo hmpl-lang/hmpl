@@ -38,14 +38,26 @@
     const ID = `ref`;
     const AFTER = `after`;
     const MODE = `mode`;
+    const ON = `on`;
     const MAIN_REGEX = /([{}])/;
-    const getResponseElements = (response) => {
-      if (typeof response !== "string") createError("Bad response");
+    // http codes without successful
+    const codes = [
+      100, 101, 102, 103, 300, 301, 302, 303, 304, 305, 306, 307, 308, 400, 401,
+      402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416,
+      417, 418, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451, 500, 501, 502,
+      503, 504, 505, 506, 507, 508, 510, 511
+    ];
+    const getTemplateWrapper = (str) => {
       const elementDocument = new DOMParser().parseFromString(
-        `<template>${response}</template>`,
+        `<template>${str}</template>`,
         "text/html"
       );
       const elWrapper = elementDocument.childNodes[0].childNodes[0].firstChild;
+      return elWrapper;
+    };
+    const getResponseElements = (response) => {
+      if (typeof response !== "string") createError("Bad response");
+      const elWrapper = getTemplateWrapper(response);
       const elContent = elWrapper["content"];
       const scripts = elContent.querySelectorAll("script");
       for (let i = 0; i < scripts.length; i++) {
@@ -64,7 +76,8 @@
       isRequests,
       options = {},
       templateObject,
-      reqObject
+      reqObject,
+      on
     ) => {
       const {
         mode,
@@ -147,7 +160,101 @@
           );
         }
       }
-      const updateStatus = (status) => {
+      const updateNodes = (content, isClone = true) => {
+        if (isRequest) {
+          templateObject.response = content.cloneNode(true);
+          get?.("response", content);
+        } else {
+          let reqResponse = [];
+          const newContent = isClone ? content.cloneNode(true) : content;
+          const nodes = newContent.content.childNodes;
+          if (dataObj.nodes) {
+            const parentNode = dataObj.parentNode;
+            if (!parentNode) createError("parentNode is null");
+            const newNodes = [];
+            const nodesLength = dataObj.nodes.length;
+            for (let i = 0; i < nodesLength; i++) {
+              const node = dataObj.nodes[i];
+              if (i === nodesLength - 1) {
+                for (let j = 0; j < nodes.length; j++) {
+                  const reqNode = nodes[j];
+                  const newNode = parentNode.insertBefore(reqNode, node);
+                  newNodes.push(newNode);
+                }
+              }
+              parentNode.removeChild(node);
+            }
+            reqResponse = newNodes.slice();
+            dataObj.nodes = newNodes;
+          } else {
+            const parentNode = el.parentNode;
+            const newNodes = [];
+            for (let i = 0; i < nodes.length; i++) {
+              const node = nodes[i];
+              const newNode = parentNode.insertBefore(node, el);
+              newNodes.push(newNode);
+            }
+            parentNode.removeChild(el);
+            reqResponse = newNodes.slice();
+            dataObj.nodes = newNodes;
+            dataObj.parentNode = parentNode;
+          }
+          if (isRequests) {
+            reqObject.response = reqResponse;
+            get?.("response", reqResponse, reqObject);
+          }
+          get?.("response", mainEl);
+        }
+      };
+      let isOverlap = false;
+      let isNotHTMLResponse = false;
+      const updateIndicator = (status) => {
+        if (on) {
+          if (status === 0) {
+            const content = on["loading"];
+            if (content !== undefined) {
+              updateNodes(content);
+            }
+          } else if (status === -1) {
+            const content = on["error"];
+            if (content !== undefined) {
+              updateNodes(content);
+            } else {
+              if (dataObj.nodes) {
+                const parentNode = dataObj.parentNode;
+                if (!parentNode) createError("parentNode is null");
+                const nodesLength = dataObj.nodes.length;
+                for (let i = 0; i < nodesLength; i++) {
+                  const node = dataObj.nodes[i];
+                  if (i === nodesLength - 1) {
+                    parentNode.insertBefore(dataObj.comment, node);
+                  }
+                  parentNode.removeChild(node);
+                }
+                dataObj.nodes = null;
+                dataObj.parentNode = null;
+              }
+            }
+          } else {
+            const content = on[`${status}`];
+            if (status > 399) {
+              const errorContent = on["error"];
+              if (content !== undefined) {
+                if (errorContent !== undefined) {
+                  isOverlap = true;
+                }
+                updateNodes(content);
+              }
+            } else {
+              if (content !== undefined) {
+                isNotHTMLResponse = true;
+                updateNodes(content);
+              }
+            }
+          }
+        }
+      };
+      const updateRequestObject = (status) => {
         if (isRequests) {
           if (reqObject.status !== status) {
             reqObject.status = status;
@@ -159,75 +266,49 @@
             get?.("status", status);
           }
         }
+        updateIndicator(status);
       };
-      updateStatus(0);
+      updateRequestObject(0);
       fetch(source, initRequest)
         .then((response) => {
-          updateStatus(response.status);
+          updateRequestObject(response.status);
           if (!response.ok) {
             createError(`Request error with code ${response.status}`);
           }
           return response.text();
         })
         .then((data) => {
-          const templateWrapper = getResponseElements(data);
-          if (isRequest) {
-            templateObject.response = templateWrapper;
-            get?.("response", templateWrapper);
-          } else {
-            let reqResponse = [];
-            const nodes = templateWrapper.content.childNodes;
-            if (dataObj) {
-              if (dataObj.nodes) {
-                const parentNode = dataObj.parentNode;
-                if (!parentNode) createError("parentNode is null");
-                const newNodes = [];
-                const nodesLength = dataObj.nodes.length;
-                for (let i = 0; i < nodesLength; i++) {
-                  const node = dataObj.nodes[i];
-                  if (i === nodesLength - 1) {
-                    for (let j = 0; j < nodes.length; j++) {
-                      const reqNode = nodes[j];
-                      const newNode = parentNode.insertBefore(reqNode, node);
-                      newNodes.push(newNode);
-                    }
-                  }
-                  parentNode.removeChild(node);
-                }
-                reqResponse = newNodes.slice();
-                dataObj.nodes = newNodes;
+          if (!isNotHTMLResponse) {
+            const templateWrapper = getResponseElements(data);
+            if (isRequest) {
+              templateObject.response = templateWrapper;
+              get?.("response", templateWrapper);
+            } else {
+              const reqResponse = [];
+              const nodes = templateWrapper.content.childNodes;
+              if (dataObj) {
+                updateNodes(templateWrapper, false);
               } else {
                 const parentNode = el.parentNode;
-                const newNodes = [];
                 for (let i = 0; i < nodes.length; i++) {
                   const node = nodes[i];
-                  const newNode = parentNode.insertBefore(node, el);
-                  newNodes.push(newNode);
+                  const reqNode = parentNode.insertBefore(node, el);
+                  if (isRequests) {
+                    reqResponse.push(reqNode);
+                  }
                 }
                 parentNode.removeChild(el);
-                reqResponse = newNodes.slice();
-                dataObj.nodes = newNodes;
-                dataObj.parentNode = parentNode;
-              }
-            } else {
-              const parentNode = el.parentNode;
-              for (let i = 0; i < nodes.length; i++) {
-                const node = nodes[i];
-                const reqNode = parentNode.insertBefore(node, el);
                 if (isRequests) {
-                  reqResponse.push(reqNode);
+                  reqObject.response = reqResponse;
+                  get?.("response", reqResponse, reqObject);
                 }
+                get?.("response", mainEl);
               }
-              parentNode.removeChild(el);
             }
-            if (isRequests) {
-              reqObject.response = reqResponse;
-              get?.("response", reqResponse, reqObject);
-            }
-            get?.("response", mainEl);
           }
         })
         .catch((error) => {
+          if (!isOverlap) updateIndicator(-1);
           throw error;
         });
     };
@@ -250,6 +331,46 @@
             const optionsId = req.ref;
             const isAll = modeAttr === "all";
             const nodeId = req.nodeId;
+            let on = req.on;
+            if (on) {
+              const parseIndicator = (val) => {
+                const { trigger, content } = val;
+                if (!trigger) createError("Indicator trigger error");
+                if (!content) createError("Indicator content error");
+                if (
+                  codes.indexOf(trigger) === -1 &&
+                  trigger !== "loading" &&
+                  trigger !== "error"
+                ) {
+                  createError("Indicator trigger error");
+                }
+                const elWrapper = getTemplateWrapper(content);
+                return {
+                  ...val,
+                  content: elWrapper
+                };
+              };
+              if (checkObject(on)) {
+                const parsedIndicator = parseIndicator(on);
+                on = {
+                  [`${parsedIndicator.trigger}`]: parsedIndicator.content
+                };
+              } else {
+                const newOn = {};
+                const uniqueTriggers = [];
+                for (let i = 0; i < on.length; i++) {
+                  const currentIndicator = parseIndicator(on[i]);
+                  const { trigger } = currentIndicator;
+                  if (uniqueTriggers.indexOf(trigger) === -1) {
+                    uniqueTriggers.push(trigger);
+                  } else {
+                    createError("Indicator trigger must be unique");
+                  }
+                  newOn[`${trigger}`] = currentIndicator.content;
+                }
+                on = newOn;
+              }
+            }
             const getOptions = (options, isArray = false) => {
               if (isArray) {
                 if (optionsId) {
@@ -312,18 +433,21 @@
                 }
               }
               let dataObj;
-              if (isDataObj) {
-                if (!currentHMPLElement) createError("Element error");
-                dataObj = currentHMPLElement.objNode;
-                if (!dataObj) {
-                  dataObj = {
-                    id,
-                    nodes: null,
-                    parentNode: null
-                  };
-                  currentHMPLElement.objNode = dataObj;
-                  data.dataObjects.push(dataObj);
-                  data.currentId++;
+              if (!isRequest) {
+                if (isDataObj || on) {
+                  if (!currentHMPLElement) createError("Element error");
+                  dataObj = currentHMPLElement.objNode;
+                  if (!dataObj) {
+                    dataObj = {
+                      id,
+                      nodes: null,
+                      parentNode: null,
+                      comment: reqEl
+                    };
+                    currentHMPLElement.objNode = dataObj;
+                    data.dataObjects.push(dataObj);
+                    data.currentId++;
+                  }
                 }
               }
               const currentOptions = getOptions(options, isArray);
@@ -337,7 +461,8 @@
                 isRequests,
                 currentOptions,
                 templateObject,
-                reqObject
+                reqObject,
+                on
               );
             };
             let requestFunction = reqFunction;
@@ -570,7 +695,7 @@
         const isOpen = text === "{";
         const isClose = text === "}";
         if (isOpen) {
-          if (currentBracketId > 0) {
+          if (currentBracketId > 1) {
             createError("Object nesting error");
           }
           if (currentBracketId === -1) {
@@ -607,13 +732,22 @@
                   key !== METHOD &&
                   key !== ID &&
                   key !== AFTER &&
-                  key !== MODE
+                  key !== MODE &&
+                  key !== ON
                 )
                   createError(`Property ${key} is not processed`);
-                if (typeof value !== "string") {
-                  createError(
-                    `The value of the property ${key} must be a string`
-                  );
+                if (key === ON) {
+                  if (!checkObject(value) && !Array.isArray(value)) {
+                    createError(
+                      `The value of the property ${key} must be an object or an array`
+                    );
+                  }
+                } else {
+                  if (typeof value !== "string") {
+                    createError(
+                      `The value of the property ${key} must be a string`
+                    );
+                  }
                 }
               }
               currentRequest.endId = i;
@@ -655,12 +789,7 @@
       template = templateArr.join("");
       let isRequest = false;
       const getElement = (template) => {
-        const elementDocument = new DOMParser().parseFromString(
-          `<template>${template}</template>`,
-          "text/html"
-        );
-        const elWrapper =
-          elementDocument.childNodes[0].childNodes[0].firstChild;
+        const elWrapper = getTemplateWrapper(template);
         if (elWrapper.content.children.length > 1) {
           createError(
             `Template include only one node with type "Element" or "Comment"`

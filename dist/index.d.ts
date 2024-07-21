@@ -9,7 +9,9 @@ import {
   HMPLIdentificationOptions,
   HMPLCompile,
   HMPLTemplateFunction,
-  HMPLRequestData
+  HMPLRequestData,
+  HMPLIndicator,
+  HMPLIndicatorTrigger
 } from "../build/types";
 
 export { compile, stringify };
@@ -23,5 +25,7 @@ export type {
   HMPLIdentificationOptions,
   HMPLCompile,
   HMPLTemplateFunction,
-  HMPLRequestData
+  HMPLRequestData,
+  HMPLIndicator,
+  HMPLIndicatorTrigger
 };
