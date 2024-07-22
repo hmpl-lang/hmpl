@@ -75,7 +75,17 @@ import { compile } from "hmpl-js";
 const templateFn = compile(
   `{ 
      {
-       "src":"/api/test" 
+       "src":"/api/test",
+       "on": [
+           {
+             "trigger": "loading",
+             "content": "<div>Loading...</div>"
+           },
+           {
+             "trigger": "error",
+             "content": "<div>Error</div>"
+           }
+       ] 
      } 
    }`
 );
@@ -213,7 +223,7 @@ This resource could be unpkg, skypack or other resources. The examples include u
 
 ## Getting started
 
-After installation using any convenient method described in [Installation](https://hmpljs.github.io/#/?id=installation), you can start working with the server in the following way:
+After installation using any convenient method described in [Installation](https://hmpljs.github.io/#/docs?id=installation), you can start working with the server in the following way:
 
 ```html
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
