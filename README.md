@@ -75,7 +75,7 @@ import { compile } from "hmpl-js";
 const templateFn = compile(
   `{ 
      {
-       "src":"/api/test",
+       "src": "/api/test",
        "on": [
            {
              "trigger": "loading",
