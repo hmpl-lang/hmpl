@@ -32,7 +32,7 @@
     `<div>
        { 
          {
-           "src":"http://localhost:8000/api/test" 
+           "src": "http://localhost:8000/api/test" 
          } 
        }
     </div>`
@@ -126,8 +126,8 @@ const templateFn = compile(
     <h1>
       { 
         {
-          "src":"http://localhost:8000/api/test",
-          "after":"click:.getTitle"
+          "src": "http://localhost:8000/api/test",
+          "after": "click:.getTitle"
         } 
       }
     </h1>
@@ -152,7 +152,7 @@ const templateFn = compile(
   `<div>
      { 
        {
-         "src":"http://localhost:8000/api/test"
+         "src": "http://localhost:8000/api/test"
        } 
      }
   </div>`
@@ -231,7 +231,7 @@ After installation using any convenient method described in [Installation](https
   const templateFn = compile(
     `{ 
        {
-         "src":"/api/test" 
+         "src": "/api/test" 
        } 
    }`
   );
@@ -246,7 +246,7 @@ import { compile } from "hmpl-js";
 const templateFn = compile(
   `{ 
      {
-       "src":"/api/test" 
+       "src": "/api/test" 
      } 
    }`
 );
@@ -265,7 +265,7 @@ Module has its own loader for files with the `.hmpl` extension. You can include 
 <div>
   {
     {
-      "src":"/api/test"
+      "src": "/api/test"
     }
   }
 </div>
