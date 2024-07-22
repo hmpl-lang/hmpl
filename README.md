@@ -230,9 +230,9 @@ After installation using any convenient method described in [Installation](https
 <script>
   const templateFn = compile(
     `{ 
-     {
-       "src":"/api/test" 
-     } 
+       {
+         "src":"/api/test" 
+       } 
    }`
   );
   const elementObj = templateFn();
