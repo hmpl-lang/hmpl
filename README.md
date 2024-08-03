@@ -18,7 +18,7 @@
 
 ## About
 
-🌐 hmpl is a small template language for fetching HTML from API. It is based on requests sent to the server via [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and processed into ready-made HTML. The word hmpl is a combination of the old name cample-html into one word. h-html, mpl-cample.
+🌐 hmpl is a small template language for fetching HTML from API. It is based on requests sent to the server via [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and processed into ready-made HTML. Create pages on the server and write a minimum of code to display them on the client.
 
 ## Example #1
 
@@ -76,13 +76,13 @@ const templateFn = compile(
   `{ 
      {
        "src": "/api/test",
-       "on": [
+       "indicators": [
            {
-             "trigger": "loading",
+             "trigger": "pending",
              "content": "<div>Loading...</div>"
            },
            {
-             "trigger": "error",
+             "trigger": "rejected",
              "content": "<div>Error</div>"
            }
        ] 
