@@ -178,7 +178,7 @@ After installation using any convenient method described in [Installation](https
        {
          "src": "/api/test" 
        } 
-   }`
+     }`
   );
   const elementObj = templateFn();
 </script>
