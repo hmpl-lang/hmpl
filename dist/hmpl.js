@@ -35,10 +35,10 @@
     };
     const SOURCE = `src`;
     const METHOD = `method`;
-    const ID = `ref`;
+    const ID = `optionsId`;
     const AFTER = `after`;
     const MODE = `mode`;
-    const ON = `on`;
+    const INDICATORS = `indicators`;
     const MAIN_REGEX = /([{}])/;
     // http codes without successful
     const codes = [
@@ -77,7 +77,7 @@
       options = {},
       templateObject,
       reqObject,
-      on
+      indicators
     ) => {
       const {
         mode,
@@ -208,47 +208,73 @@
       };
       let isOverlap = false;
       let isNotHTMLResponse = false;
+      const setComment = () => {
+        if (isRequest) {
+          templateObject.response = undefined;
+          get?.("response", undefined);
+        } else {
+          if (dataObj.nodes) {
+            const parentNode = dataObj.parentNode;
+            if (!parentNode) createError("parentNode is null");
+            const nodesLength = dataObj.nodes.length;
+            for (let i = 0; i < nodesLength; i++) {
+              const node = dataObj.nodes[i];
+              if (i === nodesLength - 1) {
+                parentNode.insertBefore(dataObj.comment, node);
+              }
+              parentNode.removeChild(node);
+            }
+            dataObj.nodes = null;
+            dataObj.parentNode = null;
+            if (isRequests) {
+              reqObject.response = undefined;
+              get?.("response", undefined, reqObject);
+            }
+            get?.("response", mainEl);
+          }
+        }
+      };
       const updateIndicator = (status) => {
-        if (on) {
-          if (status === 0) {
-            const content = on["loading"];
+        if (indicators) {
+          if (status === "pending") {
+            const content = indicators["pending"];
             if (content !== undefined) {
               updateNodes(content);
             }
-          } else if (status === -1) {
-            const content = on["error"];
+          } else if (status === "rejected") {
+            const content = indicators["rejected"];
             if (content !== undefined) {
               updateNodes(content);
             } else {
-              if (dataObj.nodes) {
-                const parentNode = dataObj.parentNode;
-                if (!parentNode) createError("parentNode is null");
-                const nodesLength = dataObj.nodes.length;
-                for (let i = 0; i < nodesLength; i++) {
-                  const node = dataObj.nodes[i];
-                  if (i === nodesLength - 1) {
-                    parentNode.insertBefore(dataObj.comment, node);
-                  }
-                  parentNode.removeChild(node);
-                }
-                dataObj.nodes = null;
-                dataObj.parentNode = null;
+              const errorContent = indicators["error"];
+              if (errorContent !== undefined) {
+                updateNodes(errorContent);
+              } else {
+                setComment();
               }
             }
           } else {
-            const content = on[`${status}`];
+            const content = indicators[`${status}`];
             if (status > 399) {
-              const errorContent = on["error"];
+              isOverlap = true;
               if (content !== undefined) {
-                if (errorContent !== undefined) {
-                  isOverlap = true;
-                }
                 updateNodes(content);
+              } else {
+                const errorContent = indicators["error"];
+                if (errorContent !== undefined) {
+                  updateNodes(errorContent);
+                } else {
+                  setComment();
+                }
               }
             } else {
-              if (content !== undefined) {
+              if (status < 199 || status > 299) {
                 isNotHTMLResponse = true;
-                updateNodes(content);
+                if (content !== undefined) {
+                  updateNodes(content);
+                } else {
+                  setComment();
+                }
               }
             }
           }
@@ -268,7 +294,7 @@
         }
         updateIndicator(status);
       };
-      updateRequestObject(0);
+      updateRequestObject("pending");
       fetch(source, initRequest)
         .then((response) => {
           updateRequestObject(response.status);
@@ -308,7 +334,7 @@
           }
         })
         .catch((error) => {
-          if (!isOverlap) updateIndicator(-1);
+          if (!isOverlap) updateRequestObject("rejected");
           throw error;
         });
     };
@@ -328,18 +354,19 @@
             const modeAttr = (oldMode || "all").toLowerCase();
             if (modeAttr !== "one" && modeAttr !== "all")
               createError(`${MODE} has only ONE or ALL values`);
-            const optionsId = req.ref;
+            const optionsId = req.optionsId;
             const isAll = modeAttr === "all";
             const nodeId = req.nodeId;
-            let on = req.on;
-            if (on) {
+            let indicators = req.indicators;
+            if (indicators) {
               const parseIndicator = (val) => {
                 const { trigger, content } = val;
                 if (!trigger) createError("Indicator trigger error");
                 if (!content) createError("Indicator content error");
                 if (
                   codes.indexOf(trigger) === -1 &&
-                  trigger !== "loading" &&
+                  trigger !== "pending" &&
+                  trigger !== "rejected" &&
                   trigger !== "error"
                 ) {
                   createError("Indicator trigger error");
@@ -350,26 +377,19 @@
                   content: elWrapper
                 };
               };
-              if (checkObject(on)) {
-                const parsedIndicator = parseIndicator(on);
-                on = {
-                  [`${parsedIndicator.trigger}`]: parsedIndicator.content
-                };
-              } else {
-                const newOn = {};
-                const uniqueTriggers = [];
-                for (let i = 0; i < on.length; i++) {
-                  const currentIndicator = parseIndicator(on[i]);
-                  const { trigger } = currentIndicator;
-                  if (uniqueTriggers.indexOf(trigger) === -1) {
-                    uniqueTriggers.push(trigger);
-                  } else {
-                    createError("Indicator trigger must be unique");
-                  }
-                  newOn[`${trigger}`] = currentIndicator.content;
+              const newOn = {};
+              const uniqueTriggers = [];
+              for (let i = 0; i < indicators.length; i++) {
+                const currentIndicator = parseIndicator(indicators[i]);
+                const { trigger } = currentIndicator;
+                if (uniqueTriggers.indexOf(trigger) === -1) {
+                  uniqueTriggers.push(trigger);
+                } else {
+                  createError("Indicator trigger must be unique");
                 }
-                on = newOn;
+                newOn[`${trigger}`] = currentIndicator.content;
               }
+              indicators = newOn;
             }
             const getOptions = (options, isArray = false) => {
               if (isArray) {
@@ -378,7 +398,7 @@
                   for (let i = 0; i < options.length; i++) {
                     const currentOptions = options[i];
                     if (currentOptions.id === optionsId) {
-                      result = currentOptions.options;
+                      result = currentOptions.value;
                       break;
                     }
                   }
@@ -434,7 +454,7 @@
               }
               let dataObj;
               if (!isRequest) {
-                if (isDataObj || on) {
+                if (isDataObj || indicators) {
                   if (!currentHMPLElement) createError("Element error");
                   dataObj = currentHMPLElement.objNode;
                   if (!dataObj) {
@@ -462,7 +482,7 @@
                 currentOptions,
                 templateObject,
                 reqObject,
-                on
+                indicators
               );
             };
             let requestFunction = reqFunction;
@@ -621,8 +641,7 @@
               }
               const currentReqFn = algorithm[i];
               const currentReq = {
-                response: undefined,
-                status: 0
+                response: undefined
               };
               currentReqFn(
                 currentReqEl,
@@ -663,8 +682,11 @@
         if (!checkObject(idOptions)) createError(`options is of type "object"`);
         validOptions(idOptions);
         const { id } = idOptions;
-        if (typeof idOptions.id !== "string")
-          createError(`id is of type "string"`);
+        if (
+          typeof idOptions.id !== "string" &&
+          typeof idOptions.id !== "number"
+        )
+          createError(`Id must be a "string" or a "number".`);
         if (ids.indexOf(id) > -1) {
           createError(`id with value "${id}" already exists`);
         } else {
@@ -733,21 +755,34 @@
                   key !== ID &&
                   key !== AFTER &&
                   key !== MODE &&
-                  key !== ON
+                  key !== INDICATORS
                 )
                   createError(`Property ${key} is not processed`);
-                if (key === ON) {
-                  if (!checkObject(value) && !Array.isArray(value)) {
-                    createError(
-                      `The value of the property ${key} must be an object or an array`
-                    );
-                  }
-                } else {
-                  if (typeof value !== "string") {
-                    createError(
-                      `The value of the property ${key} must be a string`
-                    );
-                  }
+                switch (key) {
+                  case INDICATORS:
+                    if (!Array.isArray(value)) {
+                      createError(
+                        `The value of the property ${key} must be an array`
+                      );
+                    }
+                    break;
+                  case ID:
+                    if (
+                      typeof value !== "string" &&
+                      typeof value !== "number"
+                    ) {
+                      createError(
+                        `The value of the property ${key} must be a string`
+                      );
+                    }
+                    break;
+                  default:
+                    if (typeof value !== "string") {
+                      createError(
+                        `The value of the property ${key} must be a string`
+                      );
+                    }
+                    break;
                 }
               }
               currentRequest.endId = i;
@@ -832,9 +867,6 @@
           const templateObject = {
             response: isRequest ? undefined : el
           };
-          if (isRequest) {
-            templateObject.status = 0;
-          }
           const data = {
             dataObjects: [],
             els: [],

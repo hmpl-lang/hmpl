@@ -33,9 +33,9 @@ export interface HMPLRequestsObject extends HMPLRequestData {
   nodeId?: number;
 }
 
-export type HMPLIndicatorTrigger =
-  | "loading"
-  | "error"
+export type HMPLInitalStatus =
+  | "pending"
+  | "rejected"
   | 100
   | 101
   | 102
@@ -90,6 +90,8 @@ export type HMPLIndicatorTrigger =
   | 510
   | 511;
 
+export type HMPLIndicatorTrigger = HMPLInitalStatus | "error";
+
 export interface HMPLIndicator {
   trigger: HMPLIndicatorTrigger;
   content: string;
@@ -98,13 +100,13 @@ export interface HMPLIndicator {
 export interface HMPLRequestData {
   src: string;
   method: string;
-  ref?: string;
+  optionsId?: string | number;
   after?: string;
   mode?: string;
-  on?: HMPLIndicator | HMPLIndicator[];
+  indicators?: HMPLIndicator[];
 }
 
-export interface HMPLParsedOn {
+export interface HMPLParsedIndicators {
   [key: string]: HTMLTemplateElement;
 }
 
@@ -113,7 +115,7 @@ export interface HMPLTemplate {
 }
 
 export interface HMPLIdentificationOptions {
-  options: HMPLRequestOptions;
+  value: HMPLRequestOptions;
   id: string;
 }
 
@@ -129,14 +131,27 @@ export interface HMPLCurrentRequest {
   endId: number;
 }
 
+export type HMPLStatus =
+  | HMPLInitalStatus
+  | 200
+  | 201
+  | 202
+  | 203
+  | 204
+  | 205
+  | 206
+  | 207
+  | 208
+  | 226;
+
 export interface HMPLRequest {
   response: undefined | Element | null | ChildNode[];
-  status: number;
+  status?: HMPLStatus;
 }
 
 export interface HMPLInstance {
   response: undefined | Element | null;
-  status?: number;
+  status?: HMPLStatus;
   requests?: HMPLRequest[];
 }
 

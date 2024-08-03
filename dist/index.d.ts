@@ -11,7 +11,8 @@ import {
   HMPLTemplateFunction,
   HMPLRequestData,
   HMPLIndicator,
-  HMPLIndicatorTrigger
+  HMPLIndicatorTrigger,
+  HMPLStatus
 } from "../build/types";
 
 export { compile, stringify };
@@ -27,5 +28,6 @@ export type {
   HMPLTemplateFunction,
   HMPLRequestData,
   HMPLIndicator,
-  HMPLIndicatorTrigger
+  HMPLIndicatorTrigger,
+  HMPLStatus
 };

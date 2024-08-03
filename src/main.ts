@@ -17,7 +17,8 @@ import {
   HMPLRequestData,
   HMPLIndicator,
   HMPLIndicatorTrigger,
-  HMPLParsedOn
+  HMPLParsedIndicators,
+  HMPLStatus
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -43,10 +44,10 @@ const getIsMethodValid = (method: string) => {
 };
 const SOURCE = `src`;
 const METHOD = `method`;
-const ID = `ref`;
+const ID = `optionsId`;
 const AFTER = `after`;
 const MODE = `mode`;
-const ON = `on`;
+const INDICATORS = `indicators`;
 const MAIN_REGEX = /([{}])/;
 
 // http codes without successful
@@ -88,7 +89,7 @@ const makeRequest = (
   options: HMPLRequestOptions = {},
   templateObject: HMPLInstance,
   reqObject?: HMPLRequest,
-  on?: HMPLParsedOn
+  indicators?: HMPLParsedIndicators
 ) => {
   const {
     mode,
@@ -222,53 +223,79 @@ const makeRequest = (
   };
   let isOverlap = false;
   let isNotHTMLResponse = false;
-  const updateIndicator = (status: number) => {
-    if (on) {
-      if (status === 0) {
-        const content = on["loading"];
+  const setComment = () => {
+    if (isRequest) {
+      templateObject.response = undefined;
+      get?.("response", undefined);
+    } else {
+      if (dataObj!.nodes) {
+        const parentNode = dataObj!.parentNode! as ParentNode;
+        if (!parentNode) createError("parentNode is null");
+        const nodesLength = dataObj!.nodes.length;
+        for (let i = 0; i < nodesLength; i++) {
+          const node = dataObj!.nodes[i];
+          if (i === nodesLength - 1) {
+            parentNode.insertBefore(dataObj!.comment, node);
+          }
+          parentNode.removeChild(node);
+        }
+        dataObj!.nodes = null;
+        dataObj!.parentNode = null;
+        if (isRequests) {
+          reqObject!.response = undefined;
+          get?.("response", undefined, reqObject);
+        }
+        get?.("response", mainEl);
+      }
+    }
+  };
+  const updateIndicator = (status: HMPLStatus) => {
+    if (indicators) {
+      if (status === "pending") {
+        const content = indicators["pending"];
         if (content !== undefined) {
           updateNodes(content);
         }
-      } else if (status === -1) {
-        const content = on["error"];
+      } else if (status === "rejected") {
+        const content = indicators["rejected"];
         if (content !== undefined) {
           updateNodes(content);
         } else {
-          if (dataObj!.nodes) {
-            const parentNode = dataObj!.parentNode! as ParentNode;
-            if (!parentNode) createError("parentNode is null");
-            const nodesLength = dataObj!.nodes.length;
-            for (let i = 0; i < nodesLength; i++) {
-              const node = dataObj!.nodes[i];
-              if (i === nodesLength - 1) {
-                parentNode.insertBefore(dataObj!.comment, node);
-              }
-              parentNode.removeChild(node);
-            }
-            dataObj!.nodes = null;
-            dataObj!.parentNode = null;
+          const errorContent = indicators["error"];
+          if (errorContent !== undefined) {
+            updateNodes(errorContent);
+          } else {
+            setComment();
           }
         }
       } else {
-        const content = on[`${status}`];
+        const content = indicators[`${status}`];
         if (status > 399) {
-          const errorContent = on["error"];
+          isOverlap = true;
           if (content !== undefined) {
-            if (errorContent !== undefined) {
-              isOverlap = true;
-            }
             updateNodes(content);
+          } else {
+            const errorContent = indicators["error"];
+            if (errorContent !== undefined) {
+              updateNodes(errorContent);
+            } else {
+              setComment();
+            }
           }
         } else {
-          if (content !== undefined) {
+          if (status < 199 || status > 299) {
             isNotHTMLResponse = true;
-            updateNodes(content);
+            if (content !== undefined) {
+              updateNodes(content);
+            } else {
+              setComment();
+            }
           }
         }
       }
     }
   };
-  const updateRequestObject = (status: number) => {
+  const updateRequestObject = (status: HMPLStatus) => {
     if (isRequests) {
       if (reqObject!.status !== status) {
         reqObject!.status = status;
@@ -282,10 +309,10 @@ const makeRequest = (
     }
     updateIndicator(status);
   };
-  updateRequestObject(0);
+  updateRequestObject("pending");
   fetch(source, initRequest)
     .then((response) => {
-      updateRequestObject(response.status);
+      updateRequestObject(response.status as HMPLStatus);
       if (!response.ok) {
         createError(`Request error with code ${response.status}`);
       }
@@ -323,7 +350,7 @@ const makeRequest = (
       }
     })
     .catch((error) => {
-      if (!isOverlap) updateIndicator(-1);
+      if (!isOverlap) updateRequestObject("rejected");
       throw error;
     });
 };
@@ -348,18 +375,19 @@ const renderTemplate = (
         const modeAttr = (oldMode || "all").toLowerCase();
         if (modeAttr !== "one" && modeAttr !== "all")
           createError(`${MODE} has only ONE or ALL values`);
-        const optionsId = req.ref;
+        const optionsId = req.optionsId;
         const isAll = modeAttr === "all";
         const nodeId = req.nodeId;
-        let on: any = req.on;
-        if (on) {
+        let indicators: any = req.indicators;
+        if (indicators) {
           const parseIndicator = (val: HMPLIndicator) => {
             const { trigger, content } = val;
             if (!trigger) createError("Indicator trigger error");
             if (!content) createError("Indicator content error");
             if (
               codes.indexOf(trigger as number) === -1 &&
-              trigger !== "loading" &&
+              trigger !== "pending" &&
+              trigger !== "rejected" &&
               trigger !== "error"
             ) {
               createError("Indicator trigger error");
@@ -372,26 +400,19 @@ const renderTemplate = (
               content: elWrapper
             };
           };
-          if (checkObject(on)) {
-            const parsedIndicator = parseIndicator(on as HMPLIndicator);
-            on = {
-              [`${parsedIndicator.trigger}`]: parsedIndicator.content
-            };
-          } else {
-            const newOn: any = {};
-            const uniqueTriggers: HMPLIndicatorTrigger[] = [];
-            for (let i = 0; i < on.length; i++) {
-              const currentIndicator = parseIndicator(on[i]);
-              const { trigger } = currentIndicator;
-              if (uniqueTriggers.indexOf(trigger) === -1) {
-                uniqueTriggers.push(trigger);
-              } else {
-                createError("Indicator trigger must be unique");
-              }
-              newOn[`${trigger}`] = currentIndicator.content;
+          const newOn: any = {};
+          const uniqueTriggers: HMPLIndicatorTrigger[] = [];
+          for (let i = 0; i < indicators.length; i++) {
+            const currentIndicator = parseIndicator(indicators[i]);
+            const { trigger } = currentIndicator;
+            if (uniqueTriggers.indexOf(trigger) === -1) {
+              uniqueTriggers.push(trigger);
+            } else {
+              createError("Indicator trigger must be unique");
             }
-            on = newOn;
+            newOn[`${trigger}`] = currentIndicator.content;
           }
+          indicators = newOn;
         }
         const getOptions = (
           options: HMPLRequestOptions | HMPLIdentificationOptions[],
@@ -407,7 +428,7 @@ const renderTemplate = (
               ) {
                 const currentOptions = options[i] as HMPLIdentificationOptions;
                 if (currentOptions.id === optionsId) {
-                  result = currentOptions.options;
+                  result = currentOptions.value;
                   break;
                 }
               }
@@ -462,7 +483,7 @@ const renderTemplate = (
           }
           let dataObj: HMPLNodeObj;
           if (!isRequest) {
-            if (isDataObj || on) {
+            if (isDataObj || indicators) {
               if (!currentHMPLElement) createError("Element error");
               dataObj = currentHMPLElement!.objNode!;
               if (!dataObj!) {
@@ -490,7 +511,7 @@ const renderTemplate = (
             currentOptions as HMPLRequestOptions,
             templateObject,
             reqObject,
-            on
+            indicators
           );
         };
         let requestFunction = reqFunction;
@@ -648,8 +669,7 @@ const renderTemplate = (
           }
           const currentReqFn = algorithm[i];
           const currentReq: HMPLRequest = {
-            response: undefined,
-            status: 0
+            response: undefined
           };
           currentReqFn!(
             currentReqEl,
@@ -686,13 +706,14 @@ const validOptions = (currentOptions: HMPLRequestOptions) => {
 const validIdentificationOptionsArray = (
   currentOptions: HMPLIdentificationOptions[]
 ) => {
-  const ids: string[] = [];
+  const ids: Array<string | number> = [];
   for (let i = 0; i < currentOptions.length; i++) {
     const idOptions = currentOptions[i];
     if (!checkObject(idOptions)) createError(`options is of type "object"`);
     validOptions(idOptions as HMPLRequestOptions);
     const { id } = idOptions;
-    if (typeof idOptions.id !== "string") createError(`id is of type "string"`);
+    if (typeof idOptions.id !== "string" && typeof idOptions.id !== "number")
+      createError(`Id must be a "string" or a "number".`);
     if (ids.indexOf(id) > -1) {
       createError(`id with value "${id}" already exists`);
     } else {
@@ -760,21 +781,31 @@ export const compile: HMPLCompile = (template: string) => {
               key !== ID &&
               key !== AFTER &&
               key !== MODE &&
-              key !== ON
+              key !== INDICATORS
             )
               createError(`Property ${key} is not processed`);
-            if (key === ON) {
-              if (!checkObject(value) && !Array.isArray(value)) {
-                createError(
-                  `The value of the property ${key} must be an object or an array`
-                );
-              }
-            } else {
-              if (typeof value !== "string") {
-                createError(
-                  `The value of the property ${key} must be a string`
-                );
-              }
+            switch (key) {
+              case INDICATORS:
+                if (!Array.isArray(value)) {
+                  createError(
+                    `The value of the property ${key} must be an array`
+                  );
+                }
+                break;
+              case ID:
+                if (typeof value !== "string" && typeof value !== "number") {
+                  createError(
+                    `The value of the property ${key} must be a string`
+                  );
+                }
+                break;
+              default:
+                if (typeof value !== "string") {
+                  createError(
+                    `The value of the property ${key} must be a string`
+                  );
+                }
+                break;
             }
           }
           currentRequest!.endId = i;
@@ -864,9 +895,6 @@ export const compile: HMPLCompile = (template: string) => {
       const templateObject: HMPLInstance = {
         response: isRequest ? undefined : el
       };
-      if (isRequest) {
-        templateObject.status = 0;
-      }
       const data: HMPLData = {
         dataObjects: [],
         els: [],
