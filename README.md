@@ -18,7 +18,7 @@
 
 ## About
 
-🌐 hmpl is a small template language for fetching HTML from API. It is based on requests sent to the server via [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and processed into ready-made HTML. Create pages on the server and write a minimum of code to display them on the client.
+🌐 hmpl is a small template language for fetching HTML from API. It is based on requests sent to the server via [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and processed into ready-made HTML. Create UI components on the server and write minimal code to display them on the client.
 
 ## Example #1
 
@@ -104,76 +104,21 @@ const elementObj = templateFn({
 });
 ```
 
-### Why hmpl?
+## Why hmpl?
 
-The main goal of this new template language is to simplify working with the server by integrating small request structures into HTML. This can be compared to how, in files with a php extension, you could work with the response from the server received through a php request, but at the same time work with it directly through javascript. Using the example of simply getting the title from a button, you can understand how this template language can simplify your work:
+The HMPL template language extends the capabilities of regular HTML by adding query objects to the markup to reduce the code on the client. When writing SPA, a large amount of javascript code is generated, which is loaded when the user visits the site, so the loading speed can be quite slow. All this can be avoided by generating the markup on the server and then loading it on the client:
 
-```php
+```hmpl
 <div>
-  <button id="getTitle" onclick="?">Get Title</button>
-  <h1><?php echo $title; ?></h1> <!-- if(){?} -->
+  <span>
+    Clicks: {{"src":"http://localhost:8000/api/clicks",
+    "after":"click:.increment"}}
+  </span>
+  <button class="increment">Click!</button>
 </div>
 ```
 
-or
-
-```javascript
-import { compile } from "hmpl-js";
-
-const templateFn = compile(
-  `<div>
-    <button class="getTitle">Get Title!</button>
-    <h1>
-      { 
-        {
-          "src": "http://localhost:8000/api/test",
-          "after": "click:.getTitle"
-        } 
-      }
-    </h1>
-  </div>`
-);
-
-const bodyEl = document.querySelector("body");
-
-const elementObj = templateFn();
-
-bodyEl.appendChild(elementObj.response);
-```
-
-Thus, despite the fact that this approach does not imply server-side rendering, it does simplify working with HTML and the server and makes it possible to make requests out of the box safely, as well as write less code than would be done through pure javascript.
-
-Also, the main advantage of hmpl is the simplicity and flexibility of working with HTML, which comes with the API. Let's say you can simply make a loop for 1000 iterations and add everything to one DOM node at once, without doing similar code on the server side.
-
-```javascript
-import { compile } from "hmpl-js";
-
-const templateFn = compile(
-  `<div>
-     { 
-       {
-         "src": "http://localhost:8000/api/test"
-       } 
-     }
-  </div>`
-);
-
-const bodyEl = document.querySelector("body");
-
-const elementObj = templateFn({
-  get: (prop, value) => {
-    if (prop === "response") {
-      if (value) {
-        for (let i = 0; i < 1000; i++) {
-          bodyEl.appendChild(value.cloneNode(true));
-        }
-      }
-    }
-  },
-});
-```
-
-Direct access to the node allows you to interact with the DOM via js without additional `querySelector`.
+Let's say that the same code on popular frameworks such as Vue and others takes up much more code, which, in fact, can be moved to the server.
 
 ## Installation
 
