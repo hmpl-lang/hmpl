@@ -110,10 +110,10 @@ The HMPL template language extends the capabilities of regular HTML by adding qu
 
 ```hmpl
 <div>
-  <span>
+  <p>
     Clicks: {{"src":"http://localhost:8000/api/clicks",
     "after":"click:.increment"}}
-  </span>
+  </p>
   <button class="increment">Click!</button>
 </div>
 ```
