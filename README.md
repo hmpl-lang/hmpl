@@ -18,7 +18,7 @@
 
 ## About
 
-🌐 hmpl is a small template language for fetching HTML from API. It is based on requests sent to the server via [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and processed into ready-made HTML. Create UI components on the server and write minimal code to display them on the client.
+🌐 hmpl is a small template language for displaying UI from server to client. It is based on requests sent to the server via [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and processed into ready-made HTML. Reduce the size of your javascript files and display the same UI as if it was written in a modern framework.
 
 ## Example #1
 
