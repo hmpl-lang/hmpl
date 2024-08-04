@@ -5,9 +5,9 @@ import {
   HMPLRenderFunction,
   HMPLRequest,
   HMPLRequestFunction,
-  HMPLRequestOptions,
+  HMPLRequestInit,
   HMPLInstance,
-  HMPLIdentificationOptions,
+  HMPLIdentificationRequestInit,
   HMPLCompile,
   HMPLTemplateFunction,
   HMPLData,
@@ -44,7 +44,7 @@ const getIsMethodValid = (method: string) => {
 };
 const SOURCE = `src`;
 const METHOD = `method`;
-const ID = `optionsId`;
+const ID = `initId`;
 const AFTER = `after`;
 const MODE = `mode`;
 const INDICATORS = `indicators`;
@@ -86,7 +86,7 @@ const makeRequest = (
   source: string,
   isRequest: boolean,
   isRequests: boolean,
-  options: HMPLRequestOptions = {},
+  options: HMPLRequestInit = {},
   templateObject: HMPLInstance,
   reqObject?: HMPLRequest,
   indicators?: HMPLParsedIndicators
@@ -375,7 +375,7 @@ const renderTemplate = (
         const modeAttr = (oldMode || "all").toLowerCase();
         if (modeAttr !== "one" && modeAttr !== "all")
           createError(`${MODE} has only ONE or ALL values`);
-        const optionsId = req.optionsId;
+        const initId = req.initId;
         const isAll = modeAttr === "all";
         const nodeId = req.nodeId;
         let indicators: any = req.indicators;
@@ -415,19 +415,21 @@ const renderTemplate = (
           indicators = newOn;
         }
         const getOptions = (
-          options: HMPLRequestOptions | HMPLIdentificationOptions[],
+          options: HMPLRequestInit | HMPLIdentificationRequestInit[],
           isArray: boolean = false
-        ): HMPLRequestOptions => {
+        ): HMPLRequestInit => {
           if (isArray) {
-            if (optionsId) {
-              let result: HMPLRequestOptions | undefined;
+            if (initId) {
+              let result: HMPLRequestInit | undefined;
               for (
                 let i = 0;
-                i < (options as HMPLIdentificationOptions[]).length;
+                i < (options as HMPLIdentificationRequestInit[]).length;
                 i++
               ) {
-                const currentOptions = options[i] as HMPLIdentificationOptions;
-                if (currentOptions.id === optionsId) {
+                const currentOptions = options[
+                  i
+                ] as HMPLIdentificationRequestInit;
+                if (currentOptions.id === initId) {
                   result = currentOptions.value;
                   break;
                 }
@@ -435,13 +437,13 @@ const renderTemplate = (
               if (!result) {
                 createError("id referenced by request not found");
               }
-              return result as HMPLRequestOptions;
+              return result as HMPLRequestInit;
             } else {
               return {};
             }
           } else {
-            if (optionsId) createError("id referenced by request not found");
-            return options as HMPLRequestOptions;
+            if (initId) createError("id referenced by request not found");
+            return options as HMPLRequestInit;
           }
         };
         const isDataObj = isAll && after;
@@ -508,7 +510,7 @@ const renderTemplate = (
             source,
             isRequest,
             isRequests,
-            currentOptions as HMPLRequestOptions,
+            currentOptions as HMPLRequestInit,
             templateObject,
             reqObject,
             indicators
@@ -520,7 +522,7 @@ const renderTemplate = (
             reqEl: Element,
             event: string,
             selector: string,
-            options: HMPLRequestOptions | HMPLIdentificationOptions[],
+            options: HMPLRequestInit | HMPLIdentificationRequestInit[],
             templateObject: HMPLInstance,
             data: HMPLData,
             isArray: boolean,
@@ -650,7 +652,7 @@ const renderTemplate = (
     if (requests.length > 1) {
       reqFn = (
         reqEl: Element,
-        options: HMPLRequestOptions | HMPLIdentificationOptions[],
+        options: HMPLRequestInit | HMPLIdentificationRequestInit[],
         templateObject: HMPLInstance,
         data: HMPLData,
         mainEl: Element,
@@ -696,7 +698,7 @@ const renderTemplate = (
   }
   return fn(reqFn!);
 };
-const validOptions = (currentOptions: HMPLRequestOptions) => {
+const validOptions = (currentOptions: HMPLRequestInit) => {
   if (currentOptions.get) {
     if (!checkFunction(currentOptions.get)) {
       createError("The get property has a function value");
@@ -704,13 +706,13 @@ const validOptions = (currentOptions: HMPLRequestOptions) => {
   }
 };
 const validIdentificationOptionsArray = (
-  currentOptions: HMPLIdentificationOptions[]
+  currentOptions: HMPLIdentificationRequestInit[]
 ) => {
   const ids: Array<string | number> = [];
   for (let i = 0; i < currentOptions.length; i++) {
     const idOptions = currentOptions[i];
     if (!checkObject(idOptions)) createError(`options is of type "object"`);
-    validOptions(idOptions as HMPLRequestOptions);
+    validOptions(idOptions as HMPLRequestInit);
     const { id } = idOptions;
     if (typeof idOptions.id !== "string" && typeof idOptions.id !== "number")
       createError(`Id must be a "string" or a "number".`);
@@ -889,7 +891,7 @@ export const compile: HMPLCompile = (template: string) => {
     requestFunction: HMPLRequestFunction
   ) => {
     const templateFunction: HMPLTemplateFunction = (
-      options: HMPLIdentificationOptions[] | HMPLRequestOptions = {}
+      options: HMPLIdentificationRequestInit[] | HMPLRequestInit = {}
     ): HMPLInstance => {
       const el = templateEl!.cloneNode(true) as Element;
       const templateObject: HMPLInstance = {
@@ -924,19 +926,21 @@ export const compile: HMPLCompile = (template: string) => {
         getRequests(el);
       }
       if (checkObject(options)) {
-        validOptions(options as HMPLRequestOptions);
+        validOptions(options as HMPLRequestInit);
         requestFunction(
           undefined!,
-          options as HMPLRequestOptions,
+          options as HMPLRequestInit,
           templateObject,
           data,
           el
         );
       } else if (Array.isArray(options)) {
-        validIdentificationOptionsArray(options as HMPLIdentificationOptions[]);
+        validIdentificationOptionsArray(
+          options as HMPLIdentificationRequestInit[]
+        );
         requestFunction(
           undefined!,
-          options as HMPLIdentificationOptions[],
+          options as HMPLIdentificationRequestInit[],
           templateObject,
           data,
           el,

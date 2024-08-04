@@ -10,7 +10,7 @@ export interface HMPLHeaders {
   [key: string]: string;
 }
 
-export interface HMPLRequestOptions {
+export interface HMPLRequestInit {
   mode?: RequestMode;
   cache?: RequestCache;
   redirect?: RequestRedirect;
@@ -100,7 +100,7 @@ export interface HMPLIndicator {
 export interface HMPLRequestData {
   src: string;
   method: string;
-  optionsId?: string | number;
+  initId?: string | number;
   after?: string;
   mode?: string;
   indicators?: HMPLIndicator[];
@@ -114,9 +114,9 @@ export interface HMPLTemplate {
   requests: HMPLRequestsObject[];
 }
 
-export interface HMPLIdentificationOptions {
-  value: HMPLRequestOptions;
-  id: string;
+export interface HMPLIdentificationRequestInit {
+  value: HMPLRequestInit;
+  id: string | number;
 }
 
 export interface HMPLNodeObj {
@@ -169,7 +169,7 @@ export interface HMPLData {
 
 export type HMPLRequestFunction = (
   el: Element,
-  options: HMPLRequestOptions | HMPLIdentificationOptions[],
+  options: HMPLRequestInit | HMPLIdentificationRequestInit[],
   templateObject: HMPLInstance,
   data: HMPLData,
   mainEl?: Element,
@@ -182,11 +182,11 @@ export type HMPLRequestFunction = (
 export type HMPLRenderFunction = (
   requestFunction: HMPLRequestFunction
 ) => (
-  options?: HMPLRequestOptions | HMPLIdentificationOptions[]
+  options?: HMPLRequestInit | HMPLIdentificationRequestInit[]
 ) => HMPLInstance;
 
 export type HMPLCompile = (template: string) => HMPLTemplateFunction;
 
 export type HMPLTemplateFunction = (
-  options?: HMPLIdentificationOptions[] | HMPLRequestOptions
+  options?: HMPLIdentificationRequestInit[] | HMPLRequestInit
 ) => HMPLInstance;

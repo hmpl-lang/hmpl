@@ -1,12 +1,12 @@
 import { compile, stringify } from "../build/main";
 
 import {
-  HMPLRequestOptions,
+  HMPLRequestInit,
   HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
   HMPLHeaders,
-  HMPLIdentificationOptions,
+  HMPLIdentificationRequestInit,
   HMPLCompile,
   HMPLTemplateFunction,
   HMPLRequestData,
@@ -18,12 +18,12 @@ import {
 export { compile, stringify };
 
 export type {
-  HMPLRequestOptions,
+  HMPLRequestInit,
   HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
   HMPLHeaders,
-  HMPLIdentificationOptions,
+  HMPLIdentificationRequestInit,
   HMPLCompile,
   HMPLTemplateFunction,
   HMPLRequestData,

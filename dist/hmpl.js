@@ -35,7 +35,7 @@
     };
     const SOURCE = `src`;
     const METHOD = `method`;
-    const ID = `optionsId`;
+    const ID = `initId`;
     const AFTER = `after`;
     const MODE = `mode`;
     const INDICATORS = `indicators`;
@@ -354,7 +354,7 @@
             const modeAttr = (oldMode || "all").toLowerCase();
             if (modeAttr !== "one" && modeAttr !== "all")
               createError(`${MODE} has only ONE or ALL values`);
-            const optionsId = req.optionsId;
+            const initId = req.initId;
             const isAll = modeAttr === "all";
             const nodeId = req.nodeId;
             let indicators = req.indicators;
@@ -393,11 +393,11 @@
             }
             const getOptions = (options, isArray = false) => {
               if (isArray) {
-                if (optionsId) {
+                if (initId) {
                   let result;
                   for (let i = 0; i < options.length; i++) {
                     const currentOptions = options[i];
-                    if (currentOptions.id === optionsId) {
+                    if (currentOptions.id === initId) {
                       result = currentOptions.value;
                       break;
                     }
@@ -410,8 +410,7 @@
                   return {};
                 }
               } else {
-                if (optionsId)
-                  createError("id referenced by request not found");
+                if (initId) createError("id referenced by request not found");
                 return options;
               }
             };
