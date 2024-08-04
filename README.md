@@ -1,18 +1,18 @@
 <p align="center">
     <a href="https://www.npmjs.com/package/hmpl-js">
-        <img width="200" height="200" src="https://github.com/hmpljs/media/blob/main/logo_transparent.png" alt="hmpl" >
+        <img width="200" height="200" src="https://github.com/hmpl-lang/media/blob/main/logo_transparent.png" alt="hmpl" >
     </a>
 </p>
 <h1 align="center">hmpl - template language for fetching HTML from API</h1>
 <div align="center">
 
 [![npm-version](https://img.shields.io/npm/v/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
-[![discussions](https://img.shields.io/badge/discussions-0183ff?style=for-the-badge&logo=github&labelColor=555555)](https://github.com/hmpljs/hmpl/discussions)
-[![license](https://img.shields.io/badge/MIT-0183ff?style=for-the-badge&label=license&logoColor=FFF&labelColor=555555)](https://github.com/hmpljs/hmpl/blob/master/LICENSE)
+[![discussions](https://img.shields.io/badge/discussions-0183ff?style=for-the-badge&logo=github&labelColor=555555)](https://github.com/hmpl-lang/hmpl/discussions)
+[![license](https://img.shields.io/badge/MIT-0183ff?style=for-the-badge&label=license&logoColor=FFF&labelColor=555555)](https://github.com/hmpl-lang/hmpl/blob/master/LICENSE)
 
 </div>
 
-<div align="center"><a href="https://hmpljs.github.io">Website</a> • <a href="https://hmpljs.github.io/#/docs">Documentation</a> • <a href="https://codesandbox.io/p/sandbox/basic-hmpl-example-dxlgfg">Demo Sandbox</a> • <a href="https://github.com/hmpljs/examples">Examples</a>
+<div align="center"><a href="https://hmpl-lang.github.io">Website</a> • <a href="https://hmpl-lang.github.io/#/docs">Documentation</a> • <a href="https://codesandbox.io/p/sandbox/basic-hmpl-example-dxlgfg">Demo Sandbox</a> • <a href="https://github.com/hmpl-lang/examples">Examples</a>
 </div>
 <br/>
 
@@ -168,7 +168,7 @@ This resource could be unpkg, skypack or other resources. The examples include u
 
 ## Getting started
 
-After installation using any convenient method described in [Installation](https://hmpljs.github.io/#/docs?id=installation), you can start working with the server in the following way:
+After installation using any convenient method described in [Installation](https://hmpl-lang.github.io/#/docs?id=installation), you can start working with the server in the following way:
 
 ```html
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
@@ -228,7 +228,7 @@ For the loader to work, it is better to use versions `0.0.2` or higher.
 
 ## Changelog
 
-[Changelog](https://github.com/hmpljs/hmpl/releases)
+[Changelog](https://github.com/hmpl-lang/hmpl/releases)
 
 ## Inspiration
 
@@ -240,4 +240,4 @@ Email - camplejs@gmail.com
 
 ## License
 
-[Licensed under MIT](https://github.com/hmpljs/hmpl/blob/master/LICENSE)
+[Licensed under MIT](https://github.com/hmpl-lang/hmpl/blob/master/LICENSE)
