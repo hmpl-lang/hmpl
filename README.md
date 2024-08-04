@@ -3,7 +3,7 @@
         <img width="200" height="200" src="https://github.com/hmpl-lang/media/blob/main/logo_transparent.png" alt="hmpl" >
     </a>
 </p>
-<h1 align="center">hmpl - template language for displaying UI from server to client.</h1>
+<h1 align="center">hmpl - template language for displaying UI from server to client</h1>
 <div align="center">
 
 [![npm-version](https://img.shields.io/npm/v/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
