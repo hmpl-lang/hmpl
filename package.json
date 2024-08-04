@@ -1,6 +1,6 @@
 {
   "name": "hmpl-js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Template language for displaying UI from server to client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,12 +19,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hmpljs/hmpl"
+    "url": "https://github.com/hmpl-lang/hmpl"
   },
   "bugs": {
-    "url": "https://github.com/hmpljs/hmpl/issues"
+    "url": "https://github.com/hmpl-lang/hmpl/issues"
   },
-  "homepage": "https://hmpljs.github.io",
+  "homepage": "https://hmpl-lang.github.io",
   "keywords": [
     "html",
     "api",
