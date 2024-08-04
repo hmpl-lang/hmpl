@@ -1,7 +1,7 @@
 {
   "name": "hmpl-js",
   "version": "2.1.0",
-  "description": "Template language for fetching HTML from API",
+  "description": "Template language for displaying UI from server to client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -30,6 +30,7 @@
     "api",
     "server",
     "template",
+    "language",
     "hmpl",
     "fetch"
   ],
