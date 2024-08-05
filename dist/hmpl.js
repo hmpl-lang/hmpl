@@ -37,7 +37,7 @@
     const METHOD = `method`;
     const ID = `initId`;
     const AFTER = `after`;
-    const MODE = `mode`;
+    const MODE = `isRepeatable`;
     const INDICATORS = `indicators`;
     const MAIN_REGEX = /([{}])/;
     // http codes without successful
@@ -350,10 +350,12 @@
           } else {
             const after = req.after;
             if (after && isRequest) createError("EventTarget is undefined");
-            const oldMode = req.mode;
-            const modeAttr = (oldMode || "all").toLowerCase();
-            if (modeAttr !== "one" && modeAttr !== "all")
-              createError(`${MODE} has only ONE or ALL values`);
+            const isModeUndefined = !req.hasOwnProperty("isRepeatable");
+            if (!isModeUndefined && typeof req.isRepeatable !== "boolean") {
+              createError(`${MODE} has only boolean value`);
+            }
+            const oldMode = isModeUndefined ? true : req.isRepeatable;
+            const modeAttr = oldMode ? "all" : "one";
             const initId = req.initId;
             const isAll = modeAttr === "all";
             const nodeId = req.nodeId;
@@ -570,18 +572,18 @@
                 };
               } else {
                 createError(
-                  `${AFTER} attribute doesn't work without EventTargets`
+                  `${AFTER} property doesn't work without EventTargets`
                 );
               }
             } else {
-              if (oldMode) {
-                createError(`${MODE} attribute doesn't work without ${AFTER}`);
+              if (!isModeUndefined) {
+                createError(`${MODE} property doesn't work without ${AFTER}`);
               }
             }
             return requestFunction;
           }
         } else {
-          createError(`The "source" attribute are not found or empty`);
+          createError(`The "source" property are not found or empty`);
         }
       };
       let reqFn;
@@ -693,8 +695,8 @@
         }
       }
     };
-    const stringify = (data) => {
-      return JSON.stringify(data);
+    const stringify = (info) => {
+      return JSON.stringify(info);
     };
     /**
      * @param {string} template
@@ -772,6 +774,13 @@
                     ) {
                       createError(
                         `The value of the property ${key} must be a string`
+                      );
+                    }
+                    break;
+                  case MODE:
+                    if (typeof value !== "boolean") {
+                      createError(
+                        `The value of the property ${key} must be a boolean value`
                       );
                     }
                     break;

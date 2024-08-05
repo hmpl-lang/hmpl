@@ -14,11 +14,11 @@ import {
   HMPLElement,
   HMPLRequestsObject,
   HMPLCurrentRequest,
-  HMPLRequestData,
+  HMPLRequestInfo,
   HMPLIndicator,
   HMPLIndicatorTrigger,
   HMPLParsedIndicators,
-  HMPLStatus
+  HMPLRequestStatus
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -46,7 +46,7 @@ const SOURCE = `src`;
 const METHOD = `method`;
 const ID = `initId`;
 const AFTER = `after`;
-const MODE = `mode`;
+const MODE = `isRepeatable`;
 const INDICATORS = `indicators`;
 const MAIN_REGEX = /([{}])/;
 
@@ -249,7 +249,7 @@ const makeRequest = (
       }
     }
   };
-  const updateIndicator = (status: HMPLStatus) => {
+  const updateIndicator = (status: HMPLRequestStatus) => {
     if (indicators) {
       if (status === "pending") {
         const content = indicators["pending"];
@@ -295,7 +295,7 @@ const makeRequest = (
       }
     }
   };
-  const updateRequestObject = (status: HMPLStatus) => {
+  const updateRequestObject = (status: HMPLRequestStatus) => {
     if (isRequests) {
       if (reqObject!.status !== status) {
         reqObject!.status = status;
@@ -312,7 +312,7 @@ const makeRequest = (
   updateRequestObject("pending");
   fetch(source, initRequest)
     .then((response) => {
-      updateRequestObject(response.status as HMPLStatus);
+      updateRequestObject(response.status as HMPLRequestStatus);
       if (!response.ok) {
         createError(`Request error with code ${response.status}`);
       }
@@ -371,10 +371,12 @@ const renderTemplate = (
       } else {
         const after = req.after;
         if (after && isRequest) createError("EventTarget is undefined");
-        const oldMode = req.mode;
-        const modeAttr = (oldMode || "all").toLowerCase();
-        if (modeAttr !== "one" && modeAttr !== "all")
-          createError(`${MODE} has only ONE or ALL values`);
+        const isModeUndefined = !req.hasOwnProperty("isRepeatable");
+        if (!isModeUndefined && typeof req.isRepeatable !== "boolean") {
+          createError(`${MODE} has only boolean value`);
+        }
+        const oldMode = isModeUndefined ? true : req.isRepeatable;
+        const modeAttr = oldMode ? "all" : "one";
         const initId = req.initId;
         const isAll = modeAttr === "all";
         const nodeId = req.nodeId;
@@ -601,17 +603,17 @@ const renderTemplate = (
               );
             };
           } else {
-            createError(`${AFTER} attribute doesn't work without EventTargets`);
+            createError(`${AFTER} property doesn't work without EventTargets`);
           }
         } else {
-          if (oldMode) {
-            createError(`${MODE} attribute doesn't work without ${AFTER}`);
+          if (!isModeUndefined) {
+            createError(`${MODE} property doesn't work without ${AFTER}`);
           }
         }
         return requestFunction;
       }
     } else {
-      createError(`The "source" attribute are not found or empty`);
+      createError(`The "source" property are not found or empty`);
     }
   };
 
@@ -724,8 +726,8 @@ const validIdentificationOptionsArray = (
   }
 };
 
-export const stringify = (data: HMPLRequestData) => {
-  return JSON.stringify(data);
+export const stringify = (info: HMPLRequestInfo) => {
+  return JSON.stringify(info);
 };
 
 export const compile: HMPLCompile = (template: string) => {
@@ -798,6 +800,13 @@ export const compile: HMPLCompile = (template: string) => {
                 if (typeof value !== "string" && typeof value !== "number") {
                   createError(
                     `The value of the property ${key} must be a string`
+                  );
+                }
+                break;
+              case MODE:
+                if (typeof value !== "boolean") {
+                  createError(
+                    `The value of the property ${key} must be a boolean value`
                   );
                 }
                 break;

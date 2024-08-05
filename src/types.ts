@@ -6,7 +6,7 @@ export type HMPLRequestGet = (
   request?: HMPLRequest
 ) => void;
 
-export interface HMPLHeaders {
+export interface HMPLHeadersInit {
   [key: string]: string;
 }
 
@@ -22,11 +22,11 @@ export interface HMPLRequestInit {
   signal?: AbortSignal | null;
   window?: any;
   credentials?: RequestCredentials;
-  headers?: HMPLHeaders;
+  headers?: HMPLHeadersInit;
   timeout?: number;
 }
 
-export interface HMPLRequestsObject extends HMPLRequestData {
+export interface HMPLRequestsObject extends HMPLRequestInfo {
   startId?: number;
   endId?: number;
   el?: Comment;
@@ -97,12 +97,12 @@ export interface HMPLIndicator {
   content: string;
 }
 
-export interface HMPLRequestData {
+export interface HMPLRequestInfo {
   src: string;
   method: string;
   initId?: string | number;
   after?: string;
-  mode?: string;
+  isRepeatable?: boolean;
   indicators?: HMPLIndicator[];
 }
 
@@ -131,7 +131,7 @@ export interface HMPLCurrentRequest {
   endId: number;
 }
 
-export type HMPLStatus =
+export type HMPLRequestStatus =
   | HMPLInitalStatus
   | 200
   | 201
@@ -146,12 +146,12 @@ export type HMPLStatus =
 
 export interface HMPLRequest {
   response: undefined | Element | null | ChildNode[];
-  status?: HMPLStatus;
+  status?: HMPLRequestStatus;
 }
 
 export interface HMPLInstance {
   response: undefined | Element | null;
-  status?: HMPLStatus;
+  status?: HMPLRequestStatus;
   requests?: HMPLRequest[];
 }
 

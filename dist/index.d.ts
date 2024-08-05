@@ -5,14 +5,14 @@ import {
   HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
-  HMPLHeaders,
+  HMPLHeadersInit,
   HMPLIdentificationRequestInit,
   HMPLCompile,
   HMPLTemplateFunction,
-  HMPLRequestData,
+  HMPLRequestInfo,
   HMPLIndicator,
   HMPLIndicatorTrigger,
-  HMPLStatus
+  HMPLRequestStatus
 } from "../build/types";
 
 export { compile, stringify };
@@ -22,12 +22,12 @@ export type {
   HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
-  HMPLHeaders,
+  HMPLHeadersInit,
   HMPLIdentificationRequestInit,
   HMPLCompile,
   HMPLTemplateFunction,
-  HMPLRequestData,
+  HMPLRequestInfo,
   HMPLIndicator,
   HMPLIndicatorTrigger,
-  HMPLStatus
+  HMPLRequestStatus
 };
