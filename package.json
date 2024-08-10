@@ -18,13 +18,7 @@
     "src/"
   ],
   "homepage": "https://hmpl-lang.github.io",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hmpl-lang/hmpl"
-  },
-  "bugs": {
-    "url": "https://github.com/hmpl-lang/hmpl/issues"
-  },
+  "license": "MIT",
   "keywords": [
     "html",
     "api",
@@ -35,7 +29,13 @@
     "fetch"
   ],
   "author": "Anton Maklakov",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hmpl-lang/hmpl"
+  },
+  "bugs": {
+    "url": "https://github.com/hmpl-lang/hmpl/issues"
+  },
   "engines": {
     "node": ">=10.12.0"
   },
