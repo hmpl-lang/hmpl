@@ -18,7 +18,8 @@ import {
   HMPLIndicator,
   HMPLIndicatorTrigger,
   HMPLParsedIndicators,
-  HMPLRequestStatus
+  HMPLRequestStatus,
+  HMPLCompileOptions
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -46,8 +47,10 @@ const SOURCE = `src`;
 const METHOD = `method`;
 const ID = `initId`;
 const AFTER = `after`;
-const MODE = `isRepeatable`;
+const MODE = `repeat`;
+const MEMO = `memo`;
 const INDICATORS = `indicators`;
+const COMMENT = `hmpl`;
 const MAIN_REGEX = /([{}])/;
 
 // http codes without successful
@@ -78,6 +81,7 @@ const getResponseElements = (response: string) => {
   }
   return elWrapper;
 };
+
 const makeRequest = (
   el: undefined | Element,
   mainEl: undefined | Element,
@@ -86,6 +90,7 @@ const makeRequest = (
   source: string,
   isRequest: boolean,
   isRequests: boolean,
+  isMemo: boolean,
   options: HMPLRequestInit = {},
   templateObject: HMPLInstance,
   reqObject?: HMPLRequest,
@@ -172,9 +177,23 @@ const makeRequest = (
       );
     }
   }
+  const isRequestMemo = isMemo && !isRequest && dataObj?.memo;
+  const getIsNotFullfilledStatus = (status: string | number) =>
+    status === "rejected" ||
+    (typeof status === "number" && (status < 200 || status > 299));
+  const callGetResponse = (
+    reqResponse: Element | ChildNode[] | null | undefined
+  ) => {
+    if (isRequests) {
+      reqObject!.response = reqResponse;
+      get?.("response", reqResponse, reqObject);
+    }
+    get?.("response", mainEl);
+  };
   const updateNodes = (
     content: HTMLTemplateElement,
-    isClone: boolean = true
+    isClone: boolean = true,
+    isNodes: boolean = false
   ) => {
     if (isRequest) {
       (templateObject.response as any) = content!.cloneNode(true);
@@ -214,11 +233,11 @@ const makeRequest = (
         dataObj!.nodes = newNodes;
         dataObj!.parentNode = parentNode;
       }
-      if (isRequests) {
-        reqObject!.response = reqResponse;
-        get?.("response", reqResponse, reqObject);
+      if (isRequestMemo && isNodes) {
+        dataObj!.memo!.nodes = dataObj!.nodes;
+        if (dataObj!.memo!.isPending) dataObj!.memo!.isPending = false;
       }
-      get?.("response", mainEl);
+      callGetResponse(reqResponse);
     }
   };
   let isOverlap = false;
@@ -248,12 +267,29 @@ const makeRequest = (
         get?.("response", mainEl);
       }
     }
+    if (isRequestMemo) {
+      if (dataObj!.memo!.response !== null) {
+        dataObj!.memo!.response = null;
+        delete dataObj!.memo!.isPending;
+        delete dataObj!.memo!.nodes;
+      }
+    }
   };
   const updateIndicator = (status: HMPLRequestStatus) => {
     if (indicators) {
+      if (
+        isRequestMemo &&
+        status !== "pending" &&
+        getIsNotFullfilledStatus(status)
+      ) {
+        if (dataObj!.memo!.isPending) dataObj!.memo!.isPending = false;
+      }
       if (status === "pending") {
         const content = indicators["pending"];
         if (content !== undefined) {
+          if (isRequestMemo) {
+            dataObj!.memo!.isPending = true;
+          }
           updateNodes(content);
         }
       } else if (status === "rejected") {
@@ -283,7 +319,7 @@ const makeRequest = (
             }
           }
         } else {
-          if (status < 199 || status > 299) {
+          if (status < 200 || status > 299) {
             isNotHTMLResponse = true;
             if (content !== undefined) {
               updateNodes(content);
@@ -295,7 +331,7 @@ const makeRequest = (
       }
     }
   };
-  const updateRequestObject = (status: HMPLRequestStatus) => {
+  const updateStatusDepenencies = (status: HMPLRequestStatus) => {
     if (isRequests) {
       if (reqObject!.status !== status) {
         reqObject!.status = status;
@@ -307,50 +343,105 @@ const makeRequest = (
         get?.("status", status);
       }
     }
+    if (isRequestMemo && getIsNotFullfilledStatus(status)) {
+      dataObj!.memo!.response = null;
+      delete dataObj!.memo!.nodes;
+    }
     updateIndicator(status);
   };
-  updateRequestObject("pending");
+  const takeNodesFromCache = () => {
+    if (dataObj!.memo!.isPending) {
+      const parentNode = dataObj!.parentNode! as ParentNode;
+      if (!parentNode) createError("parentNode is null");
+      const memoNodes = dataObj!.memo!.nodes!;
+      const currentNodes = dataObj!.nodes!;
+      const nodesLength = currentNodes!.length;
+      const newNodes: ChildNode[] = [];
+      for (let i = 0; i < nodesLength; i++) {
+        const node = currentNodes[i];
+        if (i === nodesLength - 1) {
+          for (let j = 0; j < memoNodes.length; j++) {
+            const reqNode = memoNodes[j];
+            const newNode = parentNode.insertBefore(reqNode, node);
+            newNodes.push(newNode);
+          }
+        }
+        parentNode.removeChild(node);
+      }
+      dataObj!.nodes = newNodes.slice();
+      dataObj!.memo!.isPending = false;
+      dataObj!.memo!.nodes = newNodes.slice();
+    }
+    const reqResponse = dataObj!.nodes!.slice();
+    callGetResponse(reqResponse);
+  };
+  let requestStatus: HMPLRequestStatus = 200;
+  updateStatusDepenencies("pending");
   fetch(source, initRequest)
     .then((response) => {
-      updateRequestObject(response.status as HMPLRequestStatus);
+      requestStatus = response.status as HMPLRequestStatus;
+      updateStatusDepenencies(requestStatus);
       if (!response.ok) {
-        createError(`Request error with code ${response.status}`);
+        createError(`Request error with code ${requestStatus}`);
       }
       return response.text();
     })
     .then((data) => {
       if (!isNotHTMLResponse) {
-        const templateWrapper = getResponseElements(data);
-        if (isRequest) {
-          (templateObject.response as any) = templateWrapper;
-          get?.("response", templateWrapper);
-        } else {
-          const reqResponse: ChildNode[] = [];
-          const nodes = (templateWrapper as HTMLTemplateElement).content
-            .childNodes;
-          if (dataObj) {
-            updateNodes(templateWrapper as HTMLTemplateElement, false);
-          } else {
-            const parentNode = el!.parentNode as ParentNode;
-            for (let i = 0; i < nodes.length; i++) {
-              const node = nodes[i];
-              const reqNode = parentNode.insertBefore(node, el!);
-              if (isRequests) {
-                reqResponse.push(reqNode);
+        if (!getIsNotFullfilledStatus(requestStatus)) {
+          if (isRequestMemo) {
+            const { response } = dataObj.memo!;
+            if (response === null) {
+              dataObj.memo!.response = data;
+            } else {
+              if (response === data) {
+                takeNodesFromCache();
+                return;
+              } else {
+                dataObj.memo!.response = data;
+                delete dataObj.memo!.nodes;
               }
             }
-            parentNode.removeChild(el!);
-            if (isRequests) {
-              reqObject!.response = reqResponse;
-              get?.("response", reqResponse, reqObject);
-            }
-            get?.("response", mainEl);
           }
+          const templateWrapper = getResponseElements(data);
+          if (isRequest) {
+            (templateObject.response as any) = templateWrapper;
+            get?.("response", templateWrapper);
+          } else {
+            const reqResponse: ChildNode[] = [];
+            const nodes = (templateWrapper as HTMLTemplateElement).content
+              .childNodes;
+            if (dataObj) {
+              updateNodes(templateWrapper as HTMLTemplateElement, false, true);
+            } else {
+              const parentNode = el!.parentNode as ParentNode;
+              for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                const reqNode = parentNode.insertBefore(node, el!);
+                if (isRequests) {
+                  reqResponse.push(reqNode);
+                }
+              }
+              parentNode.removeChild(el!);
+              if (isRequests) {
+                reqObject!.response = reqResponse;
+                get?.("response", reqResponse, reqObject);
+              }
+              get?.("response", mainEl);
+            }
+          }
+        } else {
+          setComment();
         }
       }
     })
     .catch((error) => {
-      if (!isOverlap) updateRequestObject("rejected");
+      if (!isOverlap) {
+        updateStatusDepenencies("rejected");
+        if (!indicators) {
+          setComment();
+        }
+      }
       throw error;
     });
 };
@@ -358,6 +449,8 @@ const renderTemplate = (
   currentEl: Element | Comment,
   fn: HMPLRenderFunction,
   requests: HMPLRequestsObject[],
+  compileOptions: HMPLCompileOptions,
+  isMemoUndefined: boolean,
   isRequest: boolean = false
 ) => {
   const renderRequest = (req: HMPLRequestsObject, mainEl?: Element) => {
@@ -371,14 +464,41 @@ const renderTemplate = (
       } else {
         const after = req.after;
         if (after && isRequest) createError("EventTarget is undefined");
-        const isModeUndefined = !req.hasOwnProperty("isRepeatable");
-        if (!isModeUndefined && typeof req.isRepeatable !== "boolean") {
+        const isModeUndefined = !req.hasOwnProperty(MODE);
+        if (!isModeUndefined && typeof req.repeat !== "boolean") {
           createError(`${MODE} has only boolean value`);
         }
-        const oldMode = isModeUndefined ? true : req.isRepeatable;
+        const oldMode = isModeUndefined ? true : req.repeat;
         const modeAttr = oldMode ? "all" : "one";
-        const initId = req.initId;
         const isAll = modeAttr === "all";
+        const isReqMemoUndefined = !req.hasOwnProperty(MEMO);
+        let isMemo = isMemoUndefined ? false : compileOptions.memo;
+        if (!isReqMemoUndefined) {
+          if (after) {
+            if (req.memo) {
+              if (!isAll) {
+                createError("memoization works in the enabled repetition mode");
+              } else {
+                isMemo = true;
+              }
+            } else {
+              isMemo = false;
+            }
+          } else {
+            createError("memoization works in the enabled repetition mode");
+          }
+        } else {
+          if (isMemo) {
+            if (after) {
+              if (!isAll) {
+                isMemo = false;
+              }
+            } else {
+              isMemo = false;
+            }
+          }
+        }
+        const initId = req.initId;
         const nodeId = req.nodeId;
         let indicators: any = req.indicators;
         if (indicators) {
@@ -497,6 +617,14 @@ const renderTemplate = (
                   parentNode: null,
                   comment: reqEl as unknown as Comment
                 };
+                if (isMemo) {
+                  dataObj.memo = {
+                    response: null
+                  };
+                  if (indicators) {
+                    dataObj.memo.isPending = false;
+                  }
+                }
                 currentHMPLElement!.objNode = dataObj;
                 data.dataObjects.push(dataObj);
                 data.currentId++;
@@ -512,6 +640,7 @@ const renderTemplate = (
             source,
             isRequest,
             isRequests,
+            isMemo!,
             currentOptions as HMPLRequestInit,
             templateObject,
             reqObject,
@@ -627,7 +756,7 @@ const renderTemplate = (
       id++;
       if (currrentElement.nodeType == 8) {
         let value = currrentElement.nodeValue;
-        if (value && value.startsWith("hmpl")) {
+        if (value && value.startsWith(COMMENT)) {
           value = value.slice(4);
           const currentIndex = Number(value);
           const currentRequest = requests[currentIndex];
@@ -730,12 +859,19 @@ export const stringify = (info: HMPLRequestInfo) => {
   return JSON.stringify(info);
 };
 
-export const compile: HMPLCompile = (template: string) => {
+export const compile: HMPLCompile = (
+  template: string,
+  options: HMPLCompileOptions = {}
+) => {
   if (typeof template !== "string")
     createError(
       "template was not found or the type of the passed value is not string"
     );
   if (!template) createError("template empty");
+  if (!checkObject(options)) createError("Options must be an object");
+  const isMemoUndefined = !options.hasOwnProperty(MEMO);
+  if (!isMemoUndefined && typeof options[MEMO] !== "boolean")
+    createError(`The value of the property ${MEMO} must be a boolean value`);
   const requests: HMPLRequestsObject[] = [];
   const templateArr = template.split(MAIN_REGEX).filter(Boolean);
   let currentBracketId = -1;
@@ -785,7 +921,8 @@ export const compile: HMPLCompile = (template: string) => {
               key !== ID &&
               key !== AFTER &&
               key !== MODE &&
-              key !== INDICATORS
+              key !== INDICATORS &&
+              key !== MEMO
             )
               createError(`Property ${key} is not processed`);
             switch (key) {
@@ -803,6 +940,7 @@ export const compile: HMPLCompile = (template: string) => {
                   );
                 }
                 break;
+              case MEMO:
               case MODE:
                 if (typeof value !== "boolean") {
                   createError(
@@ -917,7 +1055,7 @@ export const compile: HMPLCompile = (template: string) => {
           id++;
           if (currrentElement.nodeType == 8) {
             const value = currrentElement.nodeValue;
-            if (value && value.startsWith("hmpl")) {
+            if (value && value.startsWith(COMMENT)) {
               const elObj: HMPLElement = {
                 el: currrentElement as Element,
                 id
@@ -960,5 +1098,12 @@ export const compile: HMPLCompile = (template: string) => {
     };
     return templateFunction;
   };
-  return renderTemplate(templateEl as Element, renderFn, requests, isRequest);
+  return renderTemplate(
+    templateEl as Element,
+    renderFn,
+    requests,
+    options,
+    isMemoUndefined,
+    isRequest
+  );
 };

@@ -37,8 +37,10 @@
     const METHOD = `method`;
     const ID = `initId`;
     const AFTER = `after`;
-    const MODE = `isRepeatable`;
+    const MODE = `repeat`;
+    const MEMO = `memo`;
     const INDICATORS = `indicators`;
+    const COMMENT = `hmpl`;
     const MAIN_REGEX = /([{}])/;
     // http codes without successful
     const codes = [
@@ -74,6 +76,7 @@
       source,
       isRequest,
       isRequests,
+      isMemo,
       options = {},
       templateObject,
       reqObject,
@@ -160,7 +163,18 @@
           );
         }
       }
-      const updateNodes = (content, isClone = true) => {
+      const isRequestMemo = isMemo && !isRequest && dataObj?.memo;
+      const getIsNotFullfilledStatus = (status) =>
+        status === "rejected" ||
+        (typeof status === "number" && (status < 200 || status > 299));
+      const callGetResponse = (reqResponse) => {
+        if (isRequests) {
+          reqObject.response = reqResponse;
+          get?.("response", reqResponse, reqObject);
+        }
+        get?.("response", mainEl);
+      };
+      const updateNodes = (content, isClone = true, isNodes = false) => {
         if (isRequest) {
           templateObject.response = content.cloneNode(true);
           get?.("response", content);
@@ -199,11 +213,11 @@
             dataObj.nodes = newNodes;
             dataObj.parentNode = parentNode;
           }
-          if (isRequests) {
-            reqObject.response = reqResponse;
-            get?.("response", reqResponse, reqObject);
+          if (isRequestMemo && isNodes) {
+            dataObj.memo.nodes = dataObj.nodes;
+            if (dataObj.memo.isPending) dataObj.memo.isPending = false;
           }
-          get?.("response", mainEl);
+          callGetResponse(reqResponse);
         }
       };
       let isOverlap = false;
@@ -233,12 +247,29 @@
             get?.("response", mainEl);
           }
         }
+        if (isRequestMemo) {
+          if (dataObj.memo.response !== null) {
+            dataObj.memo.response = null;
+            delete dataObj.memo.isPending;
+            delete dataObj.memo.nodes;
+          }
+        }
       };
       const updateIndicator = (status) => {
         if (indicators) {
+          if (
+            isRequestMemo &&
+            status !== "pending" &&
+            getIsNotFullfilledStatus(status)
+          ) {
+            if (dataObj.memo.isPending) dataObj.memo.isPending = false;
+          }
           if (status === "pending") {
             const content = indicators["pending"];
             if (content !== undefined) {
+              if (isRequestMemo) {
+                dataObj.memo.isPending = true;
+              }
               updateNodes(content);
             }
           } else if (status === "rejected") {
@@ -268,7 +299,7 @@
                 }
               }
             } else {
-              if (status < 199 || status > 299) {
+              if (status < 200 || status > 299) {
                 isNotHTMLResponse = true;
                 if (content !== undefined) {
                   updateNodes(content);
@@ -280,7 +311,7 @@
           }
         }
       };
-      const updateRequestObject = (status) => {
+      const updateStatusDepenencies = (status) => {
         if (isRequests) {
           if (reqObject.status !== status) {
             reqObject.status = status;
@@ -292,53 +323,115 @@
             get?.("status", status);
           }
         }
+        if (isRequestMemo && getIsNotFullfilledStatus(status)) {
+          dataObj.memo.response = null;
+          delete dataObj.memo.nodes;
+        }
         updateIndicator(status);
       };
-      updateRequestObject("pending");
+      const takeNodesFromCache = () => {
+        if (dataObj.memo.isPending) {
+          const parentNode = dataObj.parentNode;
+          if (!parentNode) createError("parentNode is null");
+          const memoNodes = dataObj.memo.nodes;
+          const currentNodes = dataObj.nodes;
+          const nodesLength = currentNodes.length;
+          const newNodes = [];
+          for (let i = 0; i < nodesLength; i++) {
+            const node = currentNodes[i];
+            if (i === nodesLength - 1) {
+              for (let j = 0; j < memoNodes.length; j++) {
+                const reqNode = memoNodes[j];
+                const newNode = parentNode.insertBefore(reqNode, node);
+                newNodes.push(newNode);
+              }
+            }
+            parentNode.removeChild(node);
+          }
+          dataObj.nodes = newNodes.slice();
+          dataObj.memo.isPending = false;
+          dataObj.memo.nodes = newNodes.slice();
+        }
+        const reqResponse = dataObj.nodes.slice();
+        callGetResponse(reqResponse);
+      };
+      let requestStatus = 200;
+      updateStatusDepenencies("pending");
       fetch(source, initRequest)
         .then((response) => {
-          updateRequestObject(response.status);
+          requestStatus = response.status;
+          updateStatusDepenencies(requestStatus);
           if (!response.ok) {
-            createError(`Request error with code ${response.status}`);
+            createError(`Request error with code ${requestStatus}`);
           }
           return response.text();
         })
         .then((data) => {
           if (!isNotHTMLResponse) {
-            const templateWrapper = getResponseElements(data);
-            if (isRequest) {
-              templateObject.response = templateWrapper;
-              get?.("response", templateWrapper);
-            } else {
-              const reqResponse = [];
-              const nodes = templateWrapper.content.childNodes;
-              if (dataObj) {
-                updateNodes(templateWrapper, false);
-              } else {
-                const parentNode = el.parentNode;
-                for (let i = 0; i < nodes.length; i++) {
-                  const node = nodes[i];
-                  const reqNode = parentNode.insertBefore(node, el);
-                  if (isRequests) {
-                    reqResponse.push(reqNode);
+            if (!getIsNotFullfilledStatus(requestStatus)) {
+              if (isRequestMemo) {
+                const { response } = dataObj.memo;
+                if (response === null) {
+                  dataObj.memo.response = data;
+                } else {
+                  if (response === data) {
+                    takeNodesFromCache();
+                    return;
+                  } else {
+                    dataObj.memo.response = data;
+                    delete dataObj.memo.nodes;
                   }
                 }
-                parentNode.removeChild(el);
-                if (isRequests) {
-                  reqObject.response = reqResponse;
-                  get?.("response", reqResponse, reqObject);
-                }
-                get?.("response", mainEl);
               }
+              const templateWrapper = getResponseElements(data);
+              if (isRequest) {
+                templateObject.response = templateWrapper;
+                get?.("response", templateWrapper);
+              } else {
+                const reqResponse = [];
+                const nodes = templateWrapper.content.childNodes;
+                if (dataObj) {
+                  updateNodes(templateWrapper, false, true);
+                } else {
+                  const parentNode = el.parentNode;
+                  for (let i = 0; i < nodes.length; i++) {
+                    const node = nodes[i];
+                    const reqNode = parentNode.insertBefore(node, el);
+                    if (isRequests) {
+                      reqResponse.push(reqNode);
+                    }
+                  }
+                  parentNode.removeChild(el);
+                  if (isRequests) {
+                    reqObject.response = reqResponse;
+                    get?.("response", reqResponse, reqObject);
+                  }
+                  get?.("response", mainEl);
+                }
+              }
+            } else {
+              setComment();
             }
           }
         })
         .catch((error) => {
-          if (!isOverlap) updateRequestObject("rejected");
+          if (!isOverlap) {
+            updateStatusDepenencies("rejected");
+            if (!indicators) {
+              setComment();
+            }
+          }
           throw error;
         });
     };
-    const renderTemplate = (currentEl, fn, requests, isRequest = false) => {
+    const renderTemplate = (
+      currentEl,
+      fn,
+      requests,
+      compileOptions,
+      isMemoUndefined,
+      isRequest = false
+    ) => {
       const renderRequest = (req, mainEl) => {
         const source = req.src;
         if (source) {
@@ -350,14 +443,43 @@
           } else {
             const after = req.after;
             if (after && isRequest) createError("EventTarget is undefined");
-            const isModeUndefined = !req.hasOwnProperty("isRepeatable");
-            if (!isModeUndefined && typeof req.isRepeatable !== "boolean") {
+            const isModeUndefined = !req.hasOwnProperty(MODE);
+            if (!isModeUndefined && typeof req.repeat !== "boolean") {
               createError(`${MODE} has only boolean value`);
             }
-            const oldMode = isModeUndefined ? true : req.isRepeatable;
+            const oldMode = isModeUndefined ? true : req.repeat;
             const modeAttr = oldMode ? "all" : "one";
-            const initId = req.initId;
             const isAll = modeAttr === "all";
+            const isReqMemoUndefined = !req.hasOwnProperty(MEMO);
+            let isMemo = isMemoUndefined ? false : compileOptions.memo;
+            if (!isReqMemoUndefined) {
+              if (after) {
+                if (req.memo) {
+                  if (!isAll) {
+                    createError(
+                      "memoization works in the enabled repetition mode"
+                    );
+                  } else {
+                    isMemo = true;
+                  }
+                } else {
+                  isMemo = false;
+                }
+              } else {
+                createError("memoization works in the enabled repetition mode");
+              }
+            } else {
+              if (isMemo) {
+                if (after) {
+                  if (!isAll) {
+                    isMemo = false;
+                  }
+                } else {
+                  isMemo = false;
+                }
+              }
+            }
+            const initId = req.initId;
             const nodeId = req.nodeId;
             let indicators = req.indicators;
             if (indicators) {
@@ -465,6 +587,14 @@
                       parentNode: null,
                       comment: reqEl
                     };
+                    if (isMemo) {
+                      dataObj.memo = {
+                        response: null
+                      };
+                      if (indicators) {
+                        dataObj.memo.isPending = false;
+                      }
+                    }
                     currentHMPLElement.objNode = dataObj;
                     data.dataObjects.push(dataObj);
                     data.currentId++;
@@ -480,6 +610,7 @@
                 source,
                 isRequest,
                 isRequests,
+                isMemo,
                 currentOptions,
                 templateObject,
                 reqObject,
@@ -596,7 +727,7 @@
           id++;
           if (currrentElement.nodeType == 8) {
             let value = currrentElement.nodeValue;
-            if (value && value.startsWith("hmpl")) {
+            if (value && value.startsWith(COMMENT)) {
               value = value.slice(4);
               const currentIndex = Number(value);
               const currentRequest = requests[currentIndex];
@@ -695,18 +826,23 @@
         }
       }
     };
+
     const stringify = (info) => {
       return JSON.stringify(info);
     };
-    /**
-     * @param {string} template
-     */
-    const compile = (template) => {
+
+    const compile = (template, options = {}) => {
       if (typeof template !== "string")
         createError(
           "template was not found or the type of the passed value is not string"
         );
       if (!template) createError("template empty");
+      if (!checkObject(options)) createError("Options must be an object");
+      const isMemoUndefined = !options.hasOwnProperty(MEMO);
+      if (!isMemoUndefined && typeof options[MEMO] !== "boolean")
+        createError(
+          `The value of the property ${MEMO} must be a boolean value`
+        );
       const requests = [];
       const templateArr = template.split(MAIN_REGEX).filter(Boolean);
       let currentBracketId = -1;
@@ -756,7 +892,8 @@
                   key !== ID &&
                   key !== AFTER &&
                   key !== MODE &&
-                  key !== INDICATORS
+                  key !== INDICATORS &&
+                  key !== MEMO
                 )
                   createError(`Property ${key} is not processed`);
                 switch (key) {
@@ -777,6 +914,7 @@
                       );
                     }
                     break;
+                  case MEMO:
                   case MODE:
                     if (typeof value !== "boolean") {
                       createError(
@@ -886,7 +1024,7 @@
               id++;
               if (currrentElement.nodeType == 8) {
                 const value = currrentElement.nodeValue;
-                if (value && value.startsWith("hmpl")) {
+                if (value && value.startsWith(COMMENT)) {
                   const elObj = {
                     el: currrentElement,
                     id
@@ -914,7 +1052,14 @@
         };
         return templateFunction;
       };
-      return renderTemplate(templateEl, renderFn, requests, isRequest);
+      return renderTemplate(
+        templateEl,
+        renderFn,
+        requests,
+        options,
+        isMemoUndefined,
+        isRequest
+      );
     };
 
     const hmpl = {

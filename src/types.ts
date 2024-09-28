@@ -102,8 +102,13 @@ export interface HMPLRequestInfo {
   method: string;
   initId?: string | number;
   after?: string;
-  isRepeatable?: boolean;
+  repeat?: boolean;
+  memo?: boolean;
   indicators?: HMPLIndicator[];
+}
+
+export interface HMPLCompileOptions {
+  memo?: boolean;
 }
 
 export interface HMPLParsedIndicators {
@@ -124,6 +129,11 @@ export interface HMPLNodeObj {
   nodes: null | ChildNode[];
   parentNode: null | ParentNode;
   comment: Comment;
+  memo?: {
+    response: null | string;
+    isPending?: boolean;
+    nodes?: ChildNode[];
+  };
 }
 
 export interface HMPLCurrentRequest {
@@ -185,7 +195,10 @@ export type HMPLRenderFunction = (
   options?: HMPLRequestInit | HMPLIdentificationRequestInit[]
 ) => HMPLInstance;
 
-export type HMPLCompile = (template: string) => HMPLTemplateFunction;
+export type HMPLCompile = (
+  template: string,
+  options?: HMPLCompileOptions
+) => HMPLTemplateFunction;
 
 export type HMPLTemplateFunction = (
   options?: HMPLIdentificationRequestInit[] | HMPLRequestInit

@@ -12,7 +12,8 @@ import {
   HMPLRequestInfo,
   HMPLIndicator,
   HMPLIndicatorTrigger,
-  HMPLRequestStatus
+  HMPLRequestStatus,
+  HMPLCompileOptions
 } from "../build/types";
 
 export { compile, stringify };
@@ -29,5 +30,6 @@ export type {
   HMPLRequestInfo,
   HMPLIndicator,
   HMPLIndicatorTrigger,
-  HMPLRequestStatus
+  HMPLRequestStatus,
+  HMPLCompileOptions
 };
