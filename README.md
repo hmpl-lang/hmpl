@@ -107,19 +107,37 @@ const elementObj = templateFn({
 
 ## Why hmpl?
 
-The HMPL template language extends the capabilities of regular HTML by adding query objects to the markup to reduce the code on the client. When writing SPA, a large amount of javascript code is generated, which is loaded when the user visits the site, so the loading speed can be quite slow. All this can be avoided by generating the markup on the server and then loading it on the client:
+The HMPL template language extends the capabilities of regular HTML by adding query objects to the markup to reduce the code on the client. When creating modern web applications, frameworks and libraries are used, which entail the need to write a bunch of boilerplate code, as well as connecting additional modules, which again make JavaScript files very large. If you recall the same SPA, then there js files can reach several hundred megabytes, which makes the first site load speed quite long. All this can be avoided by generating the markup on the server and then loading it on the client. Example of comparing the file size of a web application on Vue and HMPL.js:
 
-```hmpl
-<div>
-  <p>
-    Clicks: {{"src":"http://localhost:8000/api/clicks",
-    "after":"click:.increment"}}
-  </p>
-  <button class="increment">Click!</button>
-</div>
+```javascript
+createApp({
+  setup() {
+    const count = ref(0);
+    return {
+      count,
+    };
+  },
+  template: `<div>
+        <button @click="count++">Click!</button>
+        <div>Clicks: {{ count }}</div>
+    </div>`,
+}).mount("#app");
 ```
+> Size: **226** bytes (4KB on disk)
 
-Let's say that the same code on popular frameworks such as Vue and others takes up much more code, which, in fact, can be moved to the server.
+```javascript
+document.querySelector("#app").appendChild(
+  hmpl.compile(
+    `<div>
+        <button>Click!</button>
+        <div>Clicks: {{ src: "/api/clicks", after: "click:button" }}</div>
+    </div>`
+  )().response
+);
+```
+> Size: **208** bytes (4KB on disk)
+
+If we do not take into account that in one case we store the state on the client, and in the other on the server, as well as the response speed from the server, then we can see that with different file sizes we get the same interface. And this is only a small example. If we take large web applications, then the file sizes there can be several times smaller.
 
 ## Installation
 
