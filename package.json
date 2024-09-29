@@ -31,7 +31,7 @@
   "author": "Anton Maklakov",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hmpl-lang/hmpl"
+    "url": "git+https://github.com/hmpl-lang/hmpl.git"
   },
   "bugs": {
     "url": "https://github.com/hmpl-lang/hmpl/issues"
