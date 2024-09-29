@@ -229,7 +229,7 @@ For the loader to work, it is better to use versions `0.0.2` or higher.
 
 ## Changelog
 
-[Changelog](https://github.com/hmpl-lang/hmpl/releases)
+[Changelog](https://hmpl-lang.github.io/#/changelog)
 
 ## Inspiration
 
