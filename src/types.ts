@@ -20,7 +20,7 @@ export interface HMPLHeadersInit {
 /**
  * A set of parameters that apply to fetch. Based almost entirely on [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/RequestInit).
  */
-export interface HMPLRequestInit {
+interface HMPLRequestInit {
   mode?: RequestMode;                       // The mode of the request (cors, no-cors, same-origin)
   cache?: RequestCache;                     // The cache mode for the request (default, no-store, reload, etc.)
   redirect?: RequestRedirect;               // How to handle redirects (follow, error, manual)
@@ -37,7 +37,7 @@ export interface HMPLRequestInit {
 }
 
 
-export interface HMPLRequestsObject extends HMPLRequestInfo {
+interface HMPLRequestsObject extends HMPLRequestInfo {
   startId?: number;               // Optional starting ID for tracking requests
   endId?: number;                 // Optional ending ID for tracking requests
   el?: Comment;                   // Optional comment node related to the request
@@ -48,7 +48,7 @@ export interface HMPLRequestsObject extends HMPLRequestInfo {
 /**
  * Statuses based on the [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) state, as well as those based on HTTP codes without success.
  */
-export type HMPLInitalStatus =
+type HMPLInitalStatus =
   | "pending" // Indicates that a promise is pending
   | "rejected" // Indicates that a promise has been rejected
   | 100 // Continue
@@ -99,24 +99,23 @@ export type HMPLInitalStatus =
   | 503 // Service Unavailable 
   | 504 // Gateway Timeout 
   | 505 // HTTP Version Not Supported 
-  | 505 // HTTP Version Not Supported – The server does not support the HTTP protocol version used in the request. 
-  | 506 // Variant Also Negotiates – Transparent content negotiation for this resource leads to circular references. 
-  | 507 // Insufficient Storage – The method could not be performed on the resource because there is insufficient storage space. 
-  | 508 // Loop Detected – The server detected an infinite loop while processing a request. 
-  | 510 // Not Extended – Further extensions are required for this request. 
-  | 511 // Network Authentication Required – The client needs to authenticate to gain network access.
+  | 506 // Variant Also Negotiates 
+  | 507 // Insufficient Storage 
+  | 508 // Loop Detected 
+  | 510 // Not Extended 
+  | 511; // Network Authentication Required
 
 
 /**
  * Sets which trigger the indicator will be shown on
  */
-export type HMPLIndicatorTrigger = HMPLInitalStatus | "error";
+type HMPLIndicatorTrigger = HMPLInitalStatus | "error";
 
 
 /**
  * Interface for indicator object.
  */
-export interface HMPLIndicator {
+interface HMPLIndicator {
   trigger: HMPLIndicatorTrigger;     // The status that triggers this indicator.
   content: string;                   // The content/message displayed by this indicator.
 }
@@ -125,7 +124,7 @@ export interface HMPLIndicator {
 /**
  * An object that defines the properties of a request.
  */
-export interface HMPLRequestInfo {
+interface HMPLRequestInfo {
   src: string;                     // The source URL of the request.
   method: string;                  // The HTTP method used for the request (GET, POST, etc.).
   initId?: string | number;        // Optional identifier for initializing this request.
@@ -138,28 +137,28 @@ export interface HMPLRequestInfo {
 /**
  * Sets options for the compile function.
  */
-export interface HMPLCompileOptions {
+interface HMPLCompileOptions {
   memo?: boolean; // Indicates if memoization should be applied during compilation.
 }
 
-export interface HMPLParsedIndicators {
+interface HMPLParsedIndicators {
   [key: string]: HTMLTemplateElement; // A dictionary mapping keys to parsed HTML template elements.
 }
 
-export interface HMPLTemplate {
+interface HMPLTemplate {
   requests: HMPLRequestsObject[];     // Array of requests associated with this template.
 }
 
 /**
  * Initializes a reference to a specific [HMPLRequestInit](https://hmpl-lang.github.io/#/docs?id=hmplrequestinit) dictionary using id.
  */
-export interface HMPLIdentificationRequestInit {
+interface HMPLIdentificationRequestInit {
   value: HMPLRequestInit;          // The initialization parameters for a specific request.
   id: string | number;             // Unique identifier for this initialization reference.
 }
 
 
-export interface HMPLNodeObj {
+interface HMPLNodeObj {
   id: number;                     // Unique identifier for this node object.
   nodes: null | ChildNode[];      // Child nodes associated with this node object or null if none exist.
   parentNode: null | ParentNode;  // Parent node associated with this node object or null if it has no parent.
@@ -173,7 +172,7 @@ export interface HMPLNodeObj {
 
 
 
-export interface HMPLCurrentRequest {
+interface HMPLCurrentRequest {
   startId: number;               // Starting ID of the current request being processed.
   endId: number;                 // Ending ID of the current request being processed.
 }
@@ -181,7 +180,7 @@ export interface HMPLCurrentRequest {
 /**
  * Type for the full list of http codes, as well as for [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) states without fulfilled. Used in the [HMPLRequest](https://hmpl-lang.github.io/#/docs?id=hmplrequest) object to indicate the status of the request. 
  */
-export type HMPLRequestStatus =
+type HMPLRequestStatus =
   | HMPLInitalStatus         // Includes initial statuses and HTTP error codes without success. 
   |200                       // OK - Request succeeded. 
   |201                       // Created - Request succeeded and a resource was created. 
@@ -192,11 +191,11 @@ export type HMPLRequestStatus =
   |206                       // Partial Content - Partial data returned due to range header. 
   |207                       // Multi-Status - Provides status for multiple independent operations. 
   |208                       // Already Reported - Members of a collection have already been enumerated. 
-  |226                       // IM Used - Server has fulfilled a GET request and is delivering an instance-manipulation result.
+  |226;                       // IM Used - Server has fulfilled a GET request and is delivering an instance-manipulation result.
 
 
 
-export interface HMPLRequest {
+interface HMPLRequest {
   response: undefined | Element | null | ChildNode[];     // Response data from the server or undefined/null if not available. 
   status?: HMPLRequestStatus;                             // Status code or state of the current request. 
 }
@@ -205,27 +204,27 @@ export interface HMPLRequest {
 /**
  * Return object of template function.
  */
-export interface HMPLInstance {
+interface HMPLInstance {
   response: undefined | Element | null;     // Response element or null if not available.  
   status?: HMPLRequestStatus;               // Status code or state of the current instance.  
   requests?: HMPLRequest[];                 // Array of requests associated with this instance.  
 }
 
-export interface HMPLElement {
+interface HMPLElement {
   el: Element;                // DOM element associated with this instance.  
   id: number;                 // Unique identifier for this element instance.  
   objNode?: HMPLNodeObj;      // Optional reference to an associated node object.  
 }
 
 
-export interface HMPLData {
+interface HMPLData {
   dataObjects: HMPLNodeObj[];     // Array of node objects containing data related to requests.  
   els: HMPLElement[];             // Array of elements associated with these requests.  
   currentId: number;              // Current ID used in processing requests and elements.  
 }
 
 
-export type HMPLRequestFunction = (
+type HMPLRequestFunction = (
   el: Element,                            // The DOM element to which this function applies.  
   options: HMPLRequestInit | HMPLIdentificationRequestInit[],     // Options or initialization references for requests.  
   templateObject: HMPLInstance,          // Template instance associated with these requests.  
@@ -239,7 +238,7 @@ export type HMPLRequestFunction = (
 
 
 
-export type HMPLRenderFunction = (
+type HMPLRenderFunction = (
   requestFunction: HMPLRequestFunction      // Function responsible for handling requests during rendering process.  
 ) => (
   options?: HMPLRequestInit | HMPLIdentificationRequestInit[]      // Options or initialization references passed during rendering process.  
@@ -249,7 +248,7 @@ export type HMPLRenderFunction = (
  /**
  * Creates a template function.
  */
-export type HMPLCompile = (
+type HMPLCompile = (
   template: string,                      // Template string that defines how data will be rendered into HTML structure.  
   options?: HMPLCompileOptions           // Options that control how compilation occurs (e.g., memoization).  
 ) => HMPLTemplateFunction;
@@ -258,6 +257,31 @@ export type HMPLCompile = (
 /**
  * The function returned in response to the compile function. Creates template instances.
  */
-export type HMPLTemplateFunction = (
+type HMPLTemplateFunction = (
   options?: HMPLIdentificationRequestInit[] | HMPLRequestInit      // Options or initialization references used when creating instances from templates.   
 ) => HMPLInstance;
+
+// Exports
+export {
+  HMPLRequestInit,
+  HMPLRequestsObject,
+  HMPLInitalStatus,
+  HMPLIndicatorTrigger,
+  HMPLIndicator,
+  HMPLRequestInfo,
+  HMPLCompileOptions,
+  HMPLParsedIndicators,
+  HMPLTemplate,
+  HMPLIdentificationRequestInit,
+  HMPLNodeObj,
+  HMPLCurrentRequest,
+  HMPLRequestStatus,
+  HMPLRequest,
+  HMPLInstance,
+  HMPLElement,
+  HMPLData,
+  HMPLRequestFunction,
+  HMPLRenderFunction,
+  HMPLCompile,
+  HMPLTemplateFunction
+};
