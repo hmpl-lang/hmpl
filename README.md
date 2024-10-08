@@ -6,10 +6,10 @@
 <h1 align="center">hmpl - template language for displaying UI from server to client</h1>
 <div align="center">
 
-[![npm-version](https://img.shields.io/npm/v/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
+[![downloads](https://img.shields.io/npm/dm/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://bundlephobia.com/package/hmpl-js) 
 [![issues](https://img.shields.io/github/issues/hmpl-lang/hmpl?logo=github&color=0183ff&style=for-the-badge)](https://github.com/hmpl-lang/hmpl/issues) 
-[![license](https://img.shields.io/badge/MIT-0183ff?style=for-the-badge&label=license&logoColor=FFF&labelColor=555555)](https://github.com/hmpl-lang/hmpl/blob/master/LICENSE)
+[![stars](https://img.shields.io/github/stars/hmpl-lang/hmpl?style=for-the-badge&label=Stars&color=0183ff&logoColor=FFF&labelColor=555555)](https://github.com/hmpl-lang/hmpl/stargazers)
 
 </div>
 
