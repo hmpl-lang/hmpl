@@ -16,7 +16,14 @@ import {
   HMPLCompileOptions
 } from "../build/types";
 
+const hmpl = {
+  compile,
+  stringify,
+}
+
 export { compile, stringify };
+
+export default hmpl;
 
 export type {
   HMPLRequestInit,
