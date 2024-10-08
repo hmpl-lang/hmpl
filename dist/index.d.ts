@@ -18,6 +18,11 @@ import {
 
 export { compile, stringify };
 
+export default {
+  compile,
+  stringify,
+};
+
 export type {
   HMPLRequestInit,
   HMPLInstance,
