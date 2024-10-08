@@ -13,7 +13,7 @@
 
 </div>
 
-<div align="center"><a href="https://hmpl-lang.github.io">Website</a> • <a href="https://hmpl-lang.github.io/#/docs">Documentation</a> • <a href="https://codesandbox.io/p/sandbox/basic-hmpl-example-dxlgfg">Demo Sandbox</a> • <a href="https://github.com/hmpl-lang/examples">Examples</a>
+<div align="center"><a href="https://hmpl-lang.github.io">Website</a> • <a href="https://hmpl-lang.github.io/introduction.html">Documentation</a> • <a href="https://codesandbox.io/p/sandbox/basic-hmpl-example-dxlgfg">Demo Sandbox</a> • <a href="https://github.com/hmpl-lang/examples">Examples</a>
 </div>
 <br/>
 
@@ -187,7 +187,7 @@ This resource could be unpkg, skypack or other resources. The examples include u
 
 ## Getting started
 
-After installation using any convenient method described in [Installation](https://hmpl-lang.github.io/#/docs?id=installation), you can start working with the server in the following way:
+After installation using any convenient method described in [Installation](https://hmpl-lang.github.io/installation.html), you can start working with the server in the following way:
 
 ```html
 <script src="https://unpkg.com/hmpl-js/dist/hmpl.min.js"></script>
@@ -247,7 +247,7 @@ For the loader to work, it is better to use versions `0.0.2` or higher.
 
 ## Changelog
 
-[Changelog](https://hmpl-lang.github.io/#/changelog)
+[Changelog](https://hmpl-lang.github.io/changelog.html)
 
 ## Inspiration
 
