@@ -7,9 +7,9 @@
 <div align="center">
 
 [![downloads](https://img.shields.io/npm/dm/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://www.npmjs.com/package/hmpl-js)
+[![stars](https://img.shields.io/github/stars/hmpl-lang/hmpl?style=for-the-badge&logo=github&label=Stars&color=0183ff&logoColor=FFF&labelColor=555555)](https://github.com/hmpl-lang/hmpl/stargazers)
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/hmpl-js?logo=npm&color=0183ff&style=for-the-badge)](https://bundlephobia.com/package/hmpl-js) 
 [![issues](https://img.shields.io/github/issues/hmpl-lang/hmpl?logo=github&color=0183ff&style=for-the-badge)](https://github.com/hmpl-lang/hmpl/issues) 
-[![stars](https://img.shields.io/github/stars/hmpl-lang/hmpl?style=for-the-badge&label=Stars&color=0183ff&logoColor=FFF&labelColor=555555)](https://github.com/hmpl-lang/hmpl/stargazers)
 
 </div>
 
