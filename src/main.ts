@@ -13,13 +13,15 @@ import {
   HMPLData,
   HMPLElement,
   HMPLRequestsObject,
-  HMPLCurrentRequest,
   HMPLRequestInfo,
   HMPLIndicator,
   HMPLIndicatorTrigger,
   HMPLParsedIndicators,
   HMPLRequestStatus,
-  HMPLCompileOptions
+  HMPLCompileOptions,
+  HMPLRequestInitFunction,
+  HMPLRequestContext,
+  HMPLInstanceContext
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -51,7 +53,8 @@ const MODE = `repeat`;
 const MEMO = `memo`;
 const INDICATORS = `indicators`;
 const COMMENT = `hmpl`;
-const MAIN_REGEX = /([{}])/;
+const MAIN_REGEX = /(\{\{(?:.|\n|\r)*?\}\}|\{\s*\{(?:.|\n|\r)*?\}\s*\})/g;
+const BRACKET_REGEX = /([{}])|([^{}]+)/g;
 
 // http codes without successful
 const codes = [
@@ -445,6 +448,21 @@ const makeRequest = (
       throw error;
     });
 };
+const getRequestInitFromFn = (
+  fn: HMPLRequestInitFunction,
+  event?: Event
+): HMPLRequestInit | undefined => {
+  const request: HMPLRequestContext = {};
+  if (event !== undefined) {
+    request.event = event;
+  }
+  const context: HMPLInstanceContext = {
+    request
+  };
+
+  const result = fn(context);
+  return result;
+};
 const renderTemplate = (
   currentEl: Element | Comment,
   fn: HMPLRenderFunction,
@@ -537,12 +555,15 @@ const renderTemplate = (
           indicators = newOn;
         }
         const getOptions = (
-          options: HMPLRequestInit | HMPLIdentificationRequestInit[],
+          options:
+            | HMPLRequestInitFunction
+            | HMPLRequestInit
+            | HMPLIdentificationRequestInit[],
           isArray: boolean = false
-        ): HMPLRequestInit => {
+        ): HMPLRequestInit | HMPLRequestInitFunction => {
           if (isArray) {
             if (initId) {
-              let result: HMPLRequestInit | undefined;
+              let result: HMPLRequestInit | HMPLRequestInitFunction | undefined;
               for (
                 let i = 0;
                 i < (options as HMPLIdentificationRequestInit[]).length;
@@ -578,7 +599,8 @@ const renderTemplate = (
           isArray = false,
           reqObject,
           isRequests = false,
-          currentHMPLElement
+          currentHMPLElement,
+          event
         ) => {
           const id = data.currentId;
           if (isRequest) {
@@ -632,6 +654,16 @@ const renderTemplate = (
             }
           }
           const currentOptions = getOptions(options, isArray);
+          const requestInit: HMPLRequestInit | undefined = checkFunction(
+            currentOptions
+          )
+            ? getRequestInitFromFn(
+                currentOptions as HMPLRequestInitFunction,
+                event
+              )
+            : (currentOptions as HMPLRequestInit);
+          if (!checkObject(requestInit) && requestInit !== undefined)
+            createError("RequestInit error");
           makeRequest(
             reqEl,
             reqMainEl,
@@ -641,7 +673,7 @@ const renderTemplate = (
             isRequest,
             isRequests,
             isMemo!,
-            currentOptions as HMPLRequestInit,
+            requestInit,
             templateObject,
             reqObject,
             indicators
@@ -653,7 +685,10 @@ const renderTemplate = (
             reqEl: Element,
             event: string,
             selector: string,
-            options: HMPLRequestInit | HMPLIdentificationRequestInit[],
+            options:
+              | HMPLRequestInitFunction
+              | HMPLRequestInit
+              | HMPLIdentificationRequestInit[],
             templateObject: HMPLInstance,
             data: HMPLData,
             isArray: boolean,
@@ -667,7 +702,7 @@ const renderTemplate = (
               createError("Selectors nodes not found");
             }
             const afterFn = isAll
-              ? () => {
+              ? (evt: Event) => {
                   reqFunction(
                     reqEl,
                     options,
@@ -677,10 +712,11 @@ const renderTemplate = (
                     isArray,
                     reqObject,
                     isRequests,
-                    currentHMPLElement
+                    currentHMPLElement,
+                    evt
                   );
                 }
-              : () => {
+              : (evt: Event) => {
                   reqFunction(
                     reqEl,
                     options,
@@ -690,7 +726,8 @@ const renderTemplate = (
                     isArray,
                     reqObject,
                     isRequests,
-                    currentHMPLElement
+                    currentHMPLElement,
+                    evt
                   );
                   for (let j = 0; j < els.length; j++) {
                     const currentAfterEl = els[j];
@@ -829,11 +866,32 @@ const renderTemplate = (
   }
   return fn(reqFn!);
 };
-const validOptions = (currentOptions: HMPLRequestInit) => {
-  if (currentOptions.get) {
-    if (!checkFunction(currentOptions.get)) {
+const validOptions = (
+  currentOptions: HMPLRequestInit | HMPLRequestInitFunction
+) => {
+  const isObject = checkObject(currentOptions);
+  if (
+    !isObject &&
+    !checkFunction(currentOptions) &&
+    currentOptions !== undefined
+  )
+    createError("RequestInit type error");
+  if (isObject && (currentOptions as HMPLRequestInit).get) {
+    if (!checkFunction((currentOptions as HMPLRequestInit).get)) {
       createError("The get property has a function value");
     }
+  }
+};
+const validIdOptions = (currentOptions: HMPLIdentificationRequestInit) => {
+  if (checkObject(currentOptions)) {
+    if (
+      !currentOptions.hasOwnProperty("id") ||
+      !currentOptions.hasOwnProperty("value")
+    ) {
+      createError("Identification options error");
+    }
+  } else {
+    createError("Identification options error");
   }
 };
 const validIdentificationOptionsArray = (
@@ -843,7 +901,7 @@ const validIdentificationOptionsArray = (
   for (let i = 0; i < currentOptions.length; i++) {
     const idOptions = currentOptions[i];
     if (!checkObject(idOptions)) createError(`options is of type "object"`);
-    validOptions(idOptions as HMPLRequestInit);
+    validIdOptions(idOptions);
     const { id } = idOptions;
     if (typeof idOptions.id !== "string" && typeof idOptions.id !== "number")
       createError(`Id must be a "string" or a "number".`);
@@ -874,130 +932,180 @@ export const compile: HMPLCompile = (
     createError(`The value of the property ${MEMO} must be a boolean value`);
   const requests: HMPLRequestsObject[] = [];
   const templateArr = template.split(MAIN_REGEX).filter(Boolean);
-  let currentBracketId = -1;
-  let previousBracket: boolean | undefined = undefined;
-  let currentRequest: undefined | HMPLCurrentRequest;
-  let currentData = "";
+  const requestsIndexes: number[] = [];
+  for (const match of template.matchAll(MAIN_REGEX)) {
+    requestsIndexes.push(match.index);
+  }
+  if (requestsIndexes.length === 0) createError(`Request not found`);
+  const prepareText = (text: string) => {
+    text = text.trim();
+    text = text.replace(/\r?\n|\r/g, "");
+    return text;
+  };
+  const setRequest = (text: string, i: number) => {
+    const parsedData = JSON.parse(text);
+    for (const key in parsedData) {
+      const value = parsedData[key];
+      if (
+        key !== SOURCE &&
+        key !== METHOD &&
+        key !== ID &&
+        key !== AFTER &&
+        key !== MODE &&
+        key !== INDICATORS &&
+        key !== MEMO
+      )
+        createError(`Property ${key} is not processed`);
+      switch (key) {
+        case INDICATORS:
+          if (!Array.isArray(value)) {
+            createError(`The value of the property ${key} must be an array`);
+          }
+          break;
+        case ID:
+          if (typeof value !== "string" && typeof value !== "number") {
+            createError(`The value of the property ${key} must be a string`);
+          }
+          break;
+        case MEMO:
+        case MODE:
+          if (typeof value !== "boolean") {
+            createError(
+              `The value of the property ${key} must be a boolean value`
+            );
+          }
+          break;
+        default:
+          if (typeof value !== "string") {
+            createError(`The value of the property ${key} must be a string`);
+          }
+          break;
+      }
+    }
+    const requestObject = {
+      ...parsedData,
+      arrId: i
+    };
+    requests.push(requestObject as HMPLRequestsObject);
+  };
+  let stringIndex = 0;
   for (let i = 0; i < templateArr.length; i++) {
     const text = templateArr[i];
-    const isOpen = text === "{";
-    const isClose = text === "}";
-    if (isOpen) {
-      if (currentBracketId > 1) {
-        createError("Object nesting error");
-      }
-      if (currentBracketId === -1) {
-        currentRequest = {
-          startId: i,
-          endId: NaN
-        };
-      } else {
-        if (currentRequest) {
-          currentData += text;
+    if (requestsIndexes.includes(stringIndex)) {
+      const requestObjectArr = text.split(BRACKET_REGEX).filter(Boolean);
+      let currentBracketId = -1;
+      let newText = "";
+      let isFirst = true;
+      let isFinal = false;
+      for (let j = 0; j < requestObjectArr.length; j++) {
+        const requestText = requestObjectArr[j];
+        const isOpen = requestText === "{";
+        const isClose = requestText === "}";
+        if (isOpen) {
+          if (isFirst) {
+            isFirst = false;
+            if (requestObjectArr[j + 1] !== "{") j++;
+          } else {
+            newText += requestText;
+          }
+          currentBracketId++;
+        } else if (isClose) {
+          if (currentBracketId === -1) {
+            createError("Parse error");
+          }
+          if (currentBracketId === 1) {
+            isFinal = true;
+          }
+          if (currentBracketId === 0) {
+            setRequest(newText, i);
+            currentBracketId--;
+            stringIndex += text.length;
+            break;
+          }
+          currentBracketId--;
+          newText += requestText;
+        } else {
+          if (isFinal) {
+            if (prepareText(requestText)) {
+              createError("Parse error");
+            }
+          } else {
+            newText += requestText;
+          }
         }
       }
-      currentBracketId++;
-      previousBracket = true;
-    } else if (isClose) {
-      if (previousBracket && currentBracketId === 0) {
-        createError("There are no query objects between the brackets");
-      }
-      if (currentBracketId === -1) {
-        createError("Template error");
-      } else {
-        if (--currentBracketId === -1 && previousBracket !== undefined) {
-          const prepareData = (text: string) => {
-            text = text.trim();
-            text = text.replace(/\r?\n|\r/g, "");
-            return text;
-          };
-          const stringData = prepareData(currentData);
-          const parsedData = JSON.parse(stringData);
-          for (const key in parsedData) {
-            const value = parsedData[key];
-            if (
-              key !== SOURCE &&
-              key !== METHOD &&
-              key !== ID &&
-              key !== AFTER &&
-              key !== MODE &&
-              key !== INDICATORS &&
-              key !== MEMO
-            )
-              createError(`Property ${key} is not processed`);
-            switch (key) {
-              case INDICATORS:
-                if (!Array.isArray(value)) {
-                  createError(
-                    `The value of the property ${key} must be an array`
-                  );
-                }
-                break;
-              case ID:
-                if (typeof value !== "string" && typeof value !== "number") {
-                  createError(
-                    `The value of the property ${key} must be a string`
-                  );
-                }
-                break;
-              case MEMO:
-              case MODE:
-                if (typeof value !== "boolean") {
-                  createError(
-                    `The value of the property ${key} must be a boolean value`
-                  );
-                }
-                break;
-              default:
-                if (typeof value !== "string") {
-                  createError(
-                    `The value of the property ${key} must be a string`
-                  );
-                }
-                break;
+      if (currentBracketId !== -1) {
+        const nextId = i + 1;
+        const nextText = templateArr[nextId];
+        if (nextText === undefined) {
+          createError("Parse error");
+        }
+        const nextArr = nextText.split(BRACKET_REGEX).filter(Boolean);
+        let newNextText = "";
+        for (let j = 0; j < nextArr.length; j++) {
+          const currentNextText = nextArr[j];
+          const isOpen = currentNextText === "{";
+          const isClose = currentNextText === "}";
+          if (isClose) {
+            if (currentBracketId === -1) {
+              createError("Parse error");
+            }
+            if (currentBracketId === 1) {
+              isFinal = true;
+            }
+            if (currentBracketId === 0) {
+              const newNextArr = [...nextArr];
+              stringIndex += text.length + nextText.length;
+              newNextArr.splice(0, j + 1);
+              templateArr[nextId] = newNextArr.join("");
+              setRequest(newText + newNextText, i);
+              currentBracketId--;
+              i++;
+              break;
+            }
+            currentBracketId--;
+            newNextText += currentNextText;
+          } else if (isOpen) {
+            newNextText += currentNextText;
+            currentBracketId++;
+          } else {
+            if (isFinal) {
+              if (prepareText(currentNextText)) {
+                createError("Parse error");
+              }
+            } else {
+              newNextText += currentNextText;
             }
           }
-          currentRequest!.endId = i;
-          const requestObject = {
-            ...parsedData,
-            ...currentRequest!
-          };
-          requests.push(requestObject as HMPLRequestsObject);
-          previousBracket = undefined;
-          currentRequest = undefined;
-          currentData = "";
-        } else {
-          if (currentRequest) {
-            currentData += text;
-          }
-          previousBracket = false;
         }
       }
-    } else {
-      if (currentRequest) {
-        currentData += text;
+      if (currentBracketId !== -1) {
+        createError("Parse error");
       }
+    } else {
+      stringIndex += text.length;
     }
   }
   if (requests.length === 0) {
     createError(`Request not found`);
   }
-  let len = 0;
   for (let i = 0; i < requests.length; i++) {
     const request = requests[i];
+    const { arrId } = request;
     const comment = `<!--hmpl${i}-->`;
-    const { startId, endId } = request;
-    const currentLen = endId! - startId!;
-    templateArr.splice(startId! - len, currentLen + 1, comment);
-    len += endId! - startId!;
-    delete request.startId;
-    delete request.endId;
+    templateArr[arrId!] = comment;
+    delete request.arrId;
   }
   template = templateArr.join("");
   let isRequest = false;
   const getElement = (template: string): Element | Comment | null => {
-    const elWrapper = getTemplateWrapper(template) as HTMLTemplateElement;
-    if (elWrapper.content.children.length > 1) {
+    const elWrapper = getTemplateWrapper(
+      template.trim()
+    ) as HTMLTemplateElement;
+    if (
+      elWrapper.content.childNodes.length > 1 ||
+      elWrapper.content.children.length !== 1
+    ) {
       createError(
         `Template include only one node with type "Element" or "Comment"`
       );
@@ -1038,7 +1146,10 @@ export const compile: HMPLCompile = (
     requestFunction: HMPLRequestFunction
   ) => {
     const templateFunction: HMPLTemplateFunction = (
-      options: HMPLIdentificationRequestInit[] | HMPLRequestInit = {}
+      options:
+        | HMPLIdentificationRequestInit[]
+        | HMPLRequestInit
+        | HMPLRequestInitFunction = {}
     ): HMPLInstance => {
       const el = templateEl!.cloneNode(true) as Element;
       const templateObject: HMPLInstance = {
@@ -1072,8 +1183,8 @@ export const compile: HMPLCompile = (
         };
         getRequests(el);
       }
-      if (checkObject(options)) {
-        validOptions(options as HMPLRequestInit);
+      if (checkObject(options) || checkFunction(options)) {
+        validOptions(options as HMPLRequestInit | HMPLRequestInitFunction);
         requestFunction(
           undefined!,
           options as HMPLRequestInit,

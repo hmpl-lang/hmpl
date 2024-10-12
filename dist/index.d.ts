@@ -2,6 +2,9 @@ import { compile, stringify } from "../build/main";
 
 import {
   HMPLRequestInit,
+  HMPLInstanceContext,
+  HMPLRequestContext,
+  HMPLRequestInitFunction,
   HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
@@ -18,8 +21,8 @@ import {
 
 const hmpl = {
   compile,
-  stringify,
-}
+  stringify
+};
 
 export { compile, stringify };
 
@@ -27,6 +30,9 @@ export default hmpl;
 
 export type {
   HMPLRequestInit,
+  HMPLInstanceContext,
+  HMPLRequestContext,
+  HMPLRequestInitFunction,
   HMPLInstance,
   HMPLRequest,
   HMPLRequestGet,
