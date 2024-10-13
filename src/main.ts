@@ -21,7 +21,8 @@ import {
   HMPLCompileOptions,
   HMPLRequestInitFunction,
   HMPLRequestContext,
-  HMPLInstanceContext
+  HMPLInstanceContext,
+  HMPLAutoBodyOptions
 } from "./types";
 
 const checkObject = (val: any) => {
@@ -52,9 +53,27 @@ const AFTER = `after`;
 const MODE = `repeat`;
 const MEMO = `memo`;
 const INDICATORS = `indicators`;
+const AUTO_BODY = `autoBody`;
 const COMMENT = `hmpl`;
+const FORM_DATA = "formData";
+const DEFAULT_AUTO_BODY = {
+  formData: true
+};
+const DEFAULT_FALSE_AUTO_BODY = {
+  formData: false
+};
 const MAIN_REGEX = /(\{\{(?:.|\n|\r)*?\}\}|\{\s*\{(?:.|\n|\r)*?\}\s*\})/g;
 const BRACKET_REGEX = /([{}])|([^{}]+)/g;
+const requestOptions = [
+  SOURCE,
+  METHOD,
+  ID,
+  AFTER,
+  MODE,
+  INDICATORS,
+  MEMO,
+  AUTO_BODY
+];
 
 // http codes without successful
 const codes = [
@@ -469,6 +488,7 @@ const renderTemplate = (
   requests: HMPLRequestsObject[],
   compileOptions: HMPLCompileOptions,
   isMemoUndefined: boolean,
+  isAutoBodyUndefined: boolean,
   isRequest: boolean = false
 ) => {
   const renderRequest = (req: HMPLRequestsObject, mainEl?: Element) => {
@@ -514,6 +534,38 @@ const renderTemplate = (
             } else {
               isMemo = false;
             }
+          }
+        }
+        const isReqAutoBodyUndefined = !req.hasOwnProperty(AUTO_BODY);
+        let autoBody = isAutoBodyUndefined ? false : compileOptions.autoBody!;
+        if (!isReqAutoBodyUndefined) {
+          if (after) {
+            let reqAutoBody = req[AUTO_BODY];
+            validAutoBody(reqAutoBody!);
+            if (autoBody === true) {
+              autoBody = DEFAULT_AUTO_BODY;
+            }
+            if (reqAutoBody === true) {
+              reqAutoBody = DEFAULT_AUTO_BODY;
+            }
+            if (reqAutoBody === false) {
+              autoBody = false;
+            } else {
+              const newAutoBody: HMPLAutoBodyOptions | undefined = {
+                ...(autoBody === false ? DEFAULT_FALSE_AUTO_BODY : autoBody),
+                ...reqAutoBody
+              };
+              autoBody = newAutoBody!;
+            }
+          } else {
+            autoBody = false;
+          }
+        } else {
+          if (autoBody === true) {
+            autoBody = DEFAULT_AUTO_BODY;
+          }
+          if (!after) {
+            autoBody = false;
           }
         }
         const initId = req.initId;
@@ -653,10 +705,25 @@ const renderTemplate = (
               }
             }
           }
-          const currentOptions = getOptions(options, isArray);
-          const requestInit: HMPLRequestInit | undefined = checkFunction(
-            currentOptions
-          )
+          let currentOptions = getOptions(options, isArray);
+          const isOptionsFunction = checkFunction(currentOptions);
+          if (!isOptionsFunction && currentOptions)
+            currentOptions = { ...currentOptions };
+          if (autoBody && autoBody.formData && event && !isOptionsFunction) {
+            const { type, target } = event as SubmitEvent;
+            if (
+              type === "submit" &&
+              target &&
+              target instanceof HTMLFormElement &&
+              target.nodeName === "FORM"
+            ) {
+              (currentOptions as HMPLRequestInit).body = new FormData(
+                target,
+                (event as SubmitEvent).submitter
+              );
+            }
+          }
+          const requestInit: HMPLRequestInit | undefined = isOptionsFunction
             ? getRequestInitFromFn(
                 currentOptions as HMPLRequestInitFunction,
                 event
@@ -882,6 +949,23 @@ const validOptions = (
     }
   }
 };
+const validAutoBody = (autoBody: boolean | HMPLAutoBodyOptions) => {
+  const isObject = checkObject(autoBody);
+  if (typeof autoBody !== "boolean" && !isObject) createError("autoBody error");
+  if (isObject) {
+    for (const key in autoBody as HMPLAutoBodyOptions) {
+      switch (key) {
+        case FORM_DATA:
+          if (typeof autoBody[FORM_DATA] !== "boolean")
+            createError("formData error");
+          break;
+        default:
+          createError("autoBody error");
+          break;
+      }
+    }
+  }
+};
 const validIdOptions = (currentOptions: HMPLIdentificationRequestInit) => {
   if (checkObject(currentOptions)) {
     if (
@@ -930,6 +1014,8 @@ export const compile: HMPLCompile = (
   const isMemoUndefined = !options.hasOwnProperty(MEMO);
   if (!isMemoUndefined && typeof options[MEMO] !== "boolean")
     createError(`The value of the property ${MEMO} must be a boolean value`);
+  const isAutoBodyUndefined = !options.hasOwnProperty(AUTO_BODY);
+  if (!isAutoBodyUndefined) validAutoBody(options[AUTO_BODY]!);
   const requests: HMPLRequestsObject[] = [];
   const templateArr = template.split(MAIN_REGEX).filter(Boolean);
   const requestsIndexes: number[] = [];
@@ -946,15 +1032,7 @@ export const compile: HMPLCompile = (
     const parsedData = JSON.parse(text);
     for (const key in parsedData) {
       const value = parsedData[key];
-      if (
-        key !== SOURCE &&
-        key !== METHOD &&
-        key !== ID &&
-        key !== AFTER &&
-        key !== MODE &&
-        key !== INDICATORS &&
-        key !== MEMO
-      )
+      if (!requestOptions.includes(key))
         createError(`Property ${key} is not processed`);
       switch (key) {
         case INDICATORS:
@@ -974,6 +1052,9 @@ export const compile: HMPLCompile = (
               `The value of the property ${key} must be a boolean value`
             );
           }
+          break;
+        case AUTO_BODY:
+          validAutoBody(value);
           break;
         default:
           if (typeof value !== "string") {
@@ -1215,6 +1296,7 @@ export const compile: HMPLCompile = (
     requests,
     options,
     isMemoUndefined,
+    isAutoBodyUndefined,
     isRequest
   );
 };

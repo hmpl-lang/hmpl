@@ -16,7 +16,8 @@ import {
   HMPLIndicator,
   HMPLIndicatorTrigger,
   HMPLRequestStatus,
-  HMPLCompileOptions
+  HMPLCompileOptions,
+  HMPLAutoBodyOptions
 } from "../build/types";
 
 const hmpl = {
@@ -44,5 +45,6 @@ export type {
   HMPLIndicator,
   HMPLIndicatorTrigger,
   HMPLRequestStatus,
-  HMPLCompileOptions
+  HMPLCompileOptions,
+  HMPLAutoBodyOptions
 };

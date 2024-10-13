@@ -41,12 +41,14 @@ interface HMPLRequestInit {
 interface HMPLRequestContext {
   event?: Event;
 }
+
 /**
  * The HMPLInstance context contains information about requests sent to the server.
  */
 interface HMPLInstanceContext {
   request: HMPLRequestContext;
 }
+
 /**
  * HMPLRequestInit generation function. Needed to work with context.
  */
@@ -144,6 +146,14 @@ interface HMPLRequestInfo {
   repeat?: boolean; // Indicates if this request should be repeated.
   memo?: boolean; // Indicates if this request should be memoized.
   indicators?: HMPLIndicator[]; // Array of indicators related to this request.
+  autoBody?: boolean | HMPLAutoBodyOptions; // Automatic generation of body for request.
+}
+
+/**
+ * List of options for the autoBody property.
+ */
+interface HMPLAutoBodyOptions {
+  formData?: boolean; // A Boolean variable depending on which FormData will be generated automatically after the submit event.
 }
 
 /**
@@ -151,6 +161,7 @@ interface HMPLRequestInfo {
  */
 interface HMPLCompileOptions {
   memo?: boolean; // Indicates if memoization should be applied during compilation.
+  autoBody?: boolean | HMPLAutoBodyOptions; // Automatic generation of body for request.
 }
 
 interface HMPLParsedIndicators {
@@ -291,5 +302,6 @@ export {
   HMPLRequestFunction,
   HMPLRenderFunction,
   HMPLCompile,
-  HMPLTemplateFunction
+  HMPLTemplateFunction,
+  HMPLAutoBodyOptions
 };

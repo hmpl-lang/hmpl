@@ -40,9 +40,27 @@
     const MODE = `repeat`;
     const MEMO = `memo`;
     const INDICATORS = `indicators`;
+    const AUTO_BODY = `autoBody`;
     const COMMENT = `hmpl`;
+    const FORM_DATA = "formData";
+    const DEFAULT_AUTO_BODY = {
+      formData: true
+    };
+    const DEFAULT_FALSE_AUTO_BODY = {
+      formData: false
+    };
     const MAIN_REGEX = /(\{\{(?:.|\n|\r)*?\}\}|\{\s*\{(?:.|\n|\r)*?\}\s*\})/g;
     const BRACKET_REGEX = /([{}])|([^{}]+)/g;
+    const requestOptions = [
+      SOURCE,
+      METHOD,
+      ID,
+      AFTER,
+      MODE,
+      INDICATORS,
+      MEMO,
+      AUTO_BODY
+    ];
     // http codes without successful
     const codes = [
       100, 101, 102, 103, 300, 301, 302, 303, 304, 305, 306, 307, 308, 400, 401,
@@ -442,6 +460,7 @@
       requests,
       compileOptions,
       isMemoUndefined,
+      isAutoBodyUndefined,
       isRequest = false
     ) => {
       const renderRequest = (req, mainEl) => {
@@ -489,6 +508,42 @@
                 } else {
                   isMemo = false;
                 }
+              }
+            }
+            const isReqAutoBodyUndefined = !req.hasOwnProperty(AUTO_BODY);
+            let autoBody = isAutoBodyUndefined
+              ? false
+              : compileOptions.autoBody;
+            if (!isReqAutoBodyUndefined) {
+              if (after) {
+                let reqAutoBody = req[AUTO_BODY];
+                validAutoBody(reqAutoBody);
+                if (autoBody === true) {
+                  autoBody = DEFAULT_AUTO_BODY;
+                }
+                if (reqAutoBody === true) {
+                  reqAutoBody = DEFAULT_AUTO_BODY;
+                }
+                if (reqAutoBody === false) {
+                  autoBody = false;
+                } else {
+                  const newAutoBody = {
+                    ...(autoBody === false
+                      ? DEFAULT_FALSE_AUTO_BODY
+                      : autoBody),
+                    ...reqAutoBody
+                  };
+                  autoBody = newAutoBody;
+                }
+              } else {
+                autoBody = false;
+              }
+            } else {
+              if (autoBody === true) {
+                autoBody = DEFAULT_AUTO_BODY;
+              }
+              if (!after) {
+                autoBody = false;
               }
             }
             const initId = req.initId;
@@ -614,8 +669,27 @@
                   }
                 }
               }
-              const currentOptions = getOptions(options, isArray);
-              const requestInit = checkFunction(currentOptions)
+              let currentOptions = getOptions(options, isArray);
+              const isOptionsFunction = checkFunction(currentOptions);
+              if (!isOptionsFunction && currentOptions)
+                currentOptions = { ...currentOptions };
+              if (
+                autoBody &&
+                autoBody.formData &&
+                event &&
+                !isOptionsFunction
+              ) {
+                const { type, target } = event;
+                if (
+                  type === "submit" &&
+                  target &&
+                  target instanceof HTMLFormElement &&
+                  target.nodeName === "FORM"
+                ) {
+                  currentOptions.body = new FormData(target, event.submitter);
+                }
+              }
+              const requestInit = isOptionsFunction
                 ? getRequestInitFromFn(currentOptions, event)
                 : currentOptions;
               if (!checkObject(requestInit) && requestInit !== undefined)
@@ -834,6 +908,24 @@
         }
       }
     };
+    const validAutoBody = (autoBody) => {
+      const isObject = checkObject(autoBody);
+      if (typeof autoBody !== "boolean" && !isObject)
+        createError("autoBody error");
+      if (isObject) {
+        for (const key in autoBody) {
+          switch (key) {
+            case FORM_DATA:
+              if (typeof autoBody[FORM_DATA] !== "boolean")
+                createError("formData error");
+              break;
+            default:
+              createError("autoBody error");
+              break;
+          }
+        }
+      }
+    };
     const validIdOptions = (currentOptions) => {
       if (checkObject(currentOptions)) {
         if (
@@ -882,6 +974,8 @@
         createError(
           `The value of the property ${MEMO} must be a boolean value`
         );
+      const isAutoBodyUndefined = !options.hasOwnProperty(AUTO_BODY);
+      if (!isAutoBodyUndefined) validAutoBody(options[AUTO_BODY]);
       const requests = [];
       const templateArr = template.split(MAIN_REGEX).filter(Boolean);
       const requestsIndexes = [];
@@ -898,15 +992,7 @@
         const parsedData = JSON.parse(text);
         for (const key in parsedData) {
           const value = parsedData[key];
-          if (
-            key !== SOURCE &&
-            key !== METHOD &&
-            key !== ID &&
-            key !== AFTER &&
-            key !== MODE &&
-            key !== INDICATORS &&
-            key !== MEMO
-          )
+          if (!requestOptions.includes(key))
             createError(`Property ${key} is not processed`);
           switch (key) {
             case INDICATORS:
@@ -930,6 +1016,9 @@
                   `The value of the property ${key} must be a boolean value`
                 );
               }
+              break;
+            case AUTO_BODY:
+              validAutoBody(value);
               break;
             default:
               if (typeof value !== "string") {
@@ -1148,6 +1237,7 @@
         requests,
         options,
         isMemoUndefined,
+        isAutoBodyUndefined,
         isRequest
       );
     };
