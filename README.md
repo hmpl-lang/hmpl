@@ -126,16 +126,16 @@ createApp({
 > Size: **226** bytes (4KB on disk)
 
 ```javascript
-document.querySelector("#app").appendChild(
+document.querySelector("#app").append(
   hmpl.compile(
     `<div>
         <button>Click!</button>
-        <div>Clicks: {{ src: "/api/clicks", after: "click:button" }}</div>
+        <div>Clicks: {{ "src": "/api/clicks", "after": "click:button" }}</div>
     </div>`
   )().response
 );
 ```
-> Size: **208** bytes (4KB on disk)
+> Size: **206** bytes (4KB on disk)
 
 If we do not take into account that in one case we store the state on the client, and in the other on the server, as well as the response speed from the server, then we can see that with different file sizes we get the same interface. And this is only a small example. If we take large web applications, then the file sizes there can be several times smaller.
 
