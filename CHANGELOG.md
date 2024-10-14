@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.4 (2024-09-29)
+## 2.1.4 (2024-10-14)
 
 - Adding auto generation for `body` in `HMPLRequestInit`
 - String parsing has been reworked
