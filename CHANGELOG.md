@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.4 (2024-09-29)
+
+- Adding auto generation for `body` in `HMPLRequestInit`
+- String parsing has been reworked
+- Adding context
+
 ## 2.1.3 (2024-09-29)
 - Added memoization functionality.
 - Replaced `isRepeatable` with `repeat`.
