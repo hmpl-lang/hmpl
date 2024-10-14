@@ -9,7 +9,10 @@
     "lint": "npx eslint src/**/* --fix",
     "lint:test": "npx eslint test/**/* --fix",
     "prebuild": "npm run lint",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "mocha --require ts-node/esm --experimental-specifier-resolution=node 'test/*.test.ts'",
+    "coverage": "c8 --reporter=html npm run test",
+    "coverage:default": "c8 npm run test"
   },
   "files": [
     "LICENSE",
@@ -45,15 +48,18 @@
     "@babel/preset-env": "^7.23.9",
     "@babel/preset-typescript": "^7.23.3",
     "@babel/register": "^7.23.7",
+    "@types/mocha": "^10.0.9",
     "@types/node": "^20.11.17",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "c8": "^10.1.2",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
+    "mocha": "^10.7.3",
+    "node-html-parser": "^6.1.12",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
-    "node-html-parser": "^6.1.12"
+    "typescript": "^5.6.3"
   }
 }
