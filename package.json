@@ -10,8 +10,8 @@
     "lint:test": "npx eslint test/**/* --fix",
     "prebuild": "npm run lint",
     "build": "tsc",
-    "test": "mocha --require ts-node/esm --experimental-specifier-resolution=node 'test/*.test.ts'",
-    "coverage": "c8 --reporter=html npm run test",
+    "test": "mocha --require ts-node/esm --experimental-specifier-resolution=node",
+    "coverage": "c8 --reporter=lcov npm run test",
     "coverage:default": "c8 npm run test"
   },
   "files": [
