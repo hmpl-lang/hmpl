@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+jobs:
+  test:
+    name: Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: npm install
+        run: npm install
+
+      - name: npm run coverage
+        run: npm run coverage
+
+      - uses: codecov/codecov-action@v3
