@@ -77,7 +77,10 @@
       return elWrapper;
     };
     const getResponseElements = (response) => {
-      if (typeof response !== "string") createError("Invalid response type: expected a string but received " + typeof response);
+      if (typeof response !== "string")
+        createError(
+          "Bad response: Expected a string, but received an invalid type."
+        );
       const elWrapper = getTemplateWrapper(response);
       const elContent = elWrapper["content"];
       const scripts = elContent.querySelectorAll("script");
@@ -151,7 +154,7 @@
         initRequest.window = windowOption;
       }
       if (options.keepalive !== undefined) {
-        createWarning("keepalive property is not yet supported");
+        createWarning("The 'keepalive' property is not yet supported");
       }
       if (headers) {
         if (checkObject(headers)) {
@@ -165,12 +168,14 @@
                 throw e;
               }
             } else {
-              createError(`The header "${key}" must have a string value. Received: ${typeof value}`);
+              createError("Header error: The header value must be a string.");
             }
           }
           initRequest.headers = newHeaders;
         } else {
-          createError(`The headers object is invalid. It should be a properly formatted object.`);
+          createError(
+            'Header error: The "header" property must contain a value object.'
+          );
         }
       }
       if (timeout) {
@@ -248,7 +253,7 @@
         } else {
           if (dataObj.nodes) {
             const parentNode = dataObj.parentNode;
-            if (!parentNode) createError("ParentNode is null");
+            if (!parentNode) createError("parentNode is null");
             const nodesLength = dataObj.nodes.length;
             for (let i = 0; i < nodesLength; i++) {
               const node = dataObj.nodes[i];
@@ -552,15 +557,23 @@
             if (indicators) {
               const parseIndicator = (val) => {
                 const { trigger, content } = val;
-                if (!trigger) createError("Indicator is missing a trigger");
-                if (!content) createError("Indicator is missing content");
+                if (!trigger)
+                  createError(
+                    "Indicator trigger error: Failed to activate or detect the indicator."
+                  );
+                if (!content)
+                  createError(
+                    "Indicator trigger error: Failed to activate or detect the indicator."
+                  );
                 if (
                   codes.indexOf(trigger) === -1 &&
                   trigger !== "pending" &&
                   trigger !== "rejected" &&
                   trigger !== "error"
                 ) {
-                  createError("Invalid indicator trigger: " + trigger);
+                  createError(
+                    "Indicator trigger error: Failed to activate or detect the indicator."
+                  );
                 }
                 const elWrapper = getTemplateWrapper(content);
                 return {
@@ -576,7 +589,7 @@
                 if (uniqueTriggers.indexOf(trigger) === -1) {
                   uniqueTriggers.push(trigger);
                 } else {
-                  createError("Indicator triggers must be unique. Duplicate trigger found: " + trigger);
+                  createError("Indicator trigger must be unique");
                 }
                 newOn[`${trigger}`] = currentIndicator.content;
               }
@@ -594,14 +607,14 @@
                     }
                   }
                   if (!result) {
-                    createError("Requested ID not found in options");
+                    createError("ID referenced by request not found");
                   }
                   return result;
                 } else {
                   return {};
                 }
               } else {
-                if (initId) createError("Requested ID not found in options");
+                if (initId) createError("ID referenced by request not found");
                 return options;
               }
             };
@@ -637,7 +650,9 @@
                       }
                     }
                     if (!currentEl) {
-                      createError("Element not found for the given node ID: " + nodeId);
+                      createError(
+                        "Element error: The specified DOM element is not valid or cannot be found."
+                      );
                     }
                     reqEl = currentEl;
                   }
@@ -646,7 +661,10 @@
               let dataObj;
               if (!isRequest) {
                 if (isDataObj || indicators) {
-                  if (!currentHMPLElement) createError("Element not found for the given parameters.");
+                  if (!currentHMPLElement)
+                    createError(
+                      "Element error: The specified DOM element is not valid or cannot be found."
+                    );
                   dataObj = currentHMPLElement.objNode;
                   if (!dataObj) {
                     dataObj = {
@@ -693,7 +711,9 @@
                 ? getRequestInitFromFn(currentOptions, event)
                 : currentOptions;
               if (!checkObject(requestInit) && requestInit !== undefined)
-                createError("The provided RequestInit object is invalid. Please ensure it is correctly structured.");
+                createError(
+                  "RequestInit type error: Expected an object with initialization options."
+                );
               makeRequest(
                 reqEl,
                 reqMainEl,
@@ -808,7 +828,7 @@
             return requestFunction;
           }
         } else {
-          createError(`The "source" property are not found or is empty`);
+          createError(`The "source" property are not found or empty`);
         }
       };
       let reqFn;
@@ -826,7 +846,9 @@
               const currentIndex = Number(value);
               const currentRequest = requests[currentIndex];
               if (Number.isNaN(currentIndex) || currentRequest === undefined) {
-                createError("Invalid request index: " + currentIndex + ". Ensure the request index is a valid number and exists.");
+                createError(
+                  "Request index error: The request index is out of range or invalid."
+                );
               }
               currentRequest.el = currrentElement;
               currentRequest.nodeId = id;
@@ -887,7 +909,7 @@
         } else {
           const currentRequest = requests[0];
           if (currentRequest.el.parentNode === null) {
-            createError(`"parentNode" is null`);
+            createError('"ParentNode" is null');
           }
           reqFn = renderRequest(currentRequest, currentEl);
         }
@@ -901,26 +923,30 @@
         !checkFunction(currentOptions) &&
         currentOptions !== undefined
       )
-        createError("Invalid RequestInit type: expected an object, function, or undefined. Received: " + typeof currentOptions);
+        createError(
+          "RequestInit type error: Expected an object with initialization options."
+        );
       if (isObject && currentOptions.get) {
         if (!checkFunction(currentOptions.get)) {
-          createError("The 'get' property must be a function. Received: " + typeof currentOptions.get);
+          createError("The get property has a function value");
         }
       }
     };
     const validAutoBody = (autoBody) => {
       const isObject = checkObject(autoBody);
       if (typeof autoBody !== "boolean" && !isObject)
-        createError("Invalid autoBody type: expected a boolean or an object.");
+        createError(
+          "AutoBody error: Expected a boolean or object, but got neither."
+        );
       if (isObject) {
         for (const key in autoBody) {
           switch (key) {
             case FORM_DATA:
               if (typeof autoBody[FORM_DATA] !== "boolean")
-                createError("The 'formData' property must be a boolean. Received: " + typeof autoBody[FORM_DATA]);
+                createError("FormData error: 'FORM_DATA' should be a boolean.");
               break;
             default:
-              createError("Invalid key in autoBody: " + key);
+              createError(`AutoBody error: Unexpected property '${key}'.`);
               break;
           }
         }
@@ -932,10 +958,12 @@
           !currentOptions.hasOwnProperty("id") ||
           !currentOptions.hasOwnProperty("value")
         ) {
-          createError("Identification options must include 'id' and 'value' properties.");
+          createError(
+            "Identification options error: Missing 'id' or 'value' property."
+          );
         }
       } else {
-        createError("Invalid options type: expected an object with 'id' and 'value' properties.");
+        createError("Identification options error: Invalid object format.");
       }
     };
     const validIdentificationOptionsArray = (currentOptions) => {
@@ -949,25 +977,23 @@
           typeof idOptions.id !== "string" &&
           typeof idOptions.id !== "number"
         )
-          createError(`Id must be a "string" or a "number".`);
+          createError(`ID must be a "string" or a "number".`);
         if (ids.indexOf(id) > -1) {
-          createError(`id with value "${id}" already exists`);
+          createError(`ID with value "${id}" already exists`);
         } else {
           ids.push(id);
         }
       }
     };
-
     const stringify = (info) => {
       return JSON.stringify(info);
     };
-
     const compile = (template, options = {}) => {
       if (typeof template !== "string")
         createError(
           "Template was not found or the type of the passed value is not string"
         );
-      if (!template) createError("Template not found");
+      if (!template) createError("template empty");
       if (!checkObject(options)) createError("Options must be an object");
       const isMemoUndefined = !options.hasOwnProperty(MEMO);
       if (!isMemoUndefined && typeof options[MEMO] !== "boolean")
@@ -1058,7 +1084,9 @@
               currentBracketId++;
             } else if (isClose) {
               if (currentBracketId === -1) {
-                createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+                createError(
+                  "Parse error: Invalid bracket ID detected. Please check the input format."
+                );
               }
               if (currentBracketId === 1) {
                 isFinal = true;
@@ -1074,7 +1102,9 @@
             } else {
               if (isFinal) {
                 if (prepareText(requestText)) {
-                  createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+                  createError(
+                    "Parse error: Invalid bracket ID detected. Please check the input format."
+                  );
                 }
               } else {
                 newText += requestText;
@@ -1085,7 +1115,9 @@
             const nextId = i + 1;
             const nextText = templateArr[nextId];
             if (nextText === undefined) {
-              createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+              createError(
+                "Parse error: Invalid bracket ID detected. Please check the input format."
+              );
             }
             const nextArr = nextText.split(BRACKET_REGEX).filter(Boolean);
             let newNextText = "";
@@ -1095,7 +1127,9 @@
               const isClose = currentNextText === "}";
               if (isClose) {
                 if (currentBracketId === -1) {
-                  createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+                  createError(
+                    "Parse error: Invalid bracket ID detected. Please check the input format."
+                  );
                 }
                 if (currentBracketId === 1) {
                   isFinal = true;
@@ -1118,7 +1152,9 @@
               } else {
                 if (isFinal) {
                   if (prepareText(currentNextText)) {
-                    createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+                    createError(
+                      "Parse error: Invalid bracket ID detected. Please check the input format."
+                    );
                   }
                 } else {
                   newNextText += currentNextText;
@@ -1127,7 +1163,9 @@
             }
           }
           if (currentBracketId !== -1) {
-            createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+            createError(
+              "Parse error: Invalid bracket ID detected. Please check the input format."
+            );
           }
         } else {
           stringIndex += text.length;

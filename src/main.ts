@@ -93,7 +93,10 @@ const getTemplateWrapper = (str: string) => {
 };
 
 const getResponseElements = (response: string) => {
-  if (typeof response !== "string") createError("Bad response: Expected a string, but received an invalid type.");
+  if (typeof response !== "string")
+    createError(
+      "Bad response: Expected a string, but received an invalid type."
+    );
   const elWrapper = getTemplateWrapper(response);
   const elContent = elWrapper!["content"];
   const scripts = elContent.querySelectorAll("script");
@@ -187,7 +190,9 @@ const makeRequest = (
       }
       initRequest.headers = newHeaders;
     } else {
-      createError('Header error: The "header" property must contain a value object.');
+      createError(
+        'Header error: The "header" property must contain a value object.'
+      );
     }
   }
   if (timeout) {
@@ -574,15 +579,23 @@ const renderTemplate = (
         if (indicators) {
           const parseIndicator = (val: HMPLIndicator) => {
             const { trigger, content } = val;
-            if (!trigger) createError("Indicator trigger error: Failed to activate or detect the indicator.");
-            if (!content) createError("Indicator trigger error: Failed to activate or detect the indicator.");
+            if (!trigger)
+              createError(
+                "Indicator trigger error: Failed to activate or detect the indicator."
+              );
+            if (!content)
+              createError(
+                "Indicator trigger error: Failed to activate or detect the indicator."
+              );
             if (
               codes.indexOf(trigger as number) === -1 &&
               trigger !== "pending" &&
               trigger !== "rejected" &&
               trigger !== "error"
             ) {
-              createError("Indicator trigger error: Failed to activate or detect the indicator.");
+              createError(
+                "Indicator trigger error: Failed to activate or detect the indicator."
+              );
             }
             const elWrapper = getTemplateWrapper(
               content
@@ -673,7 +686,9 @@ const renderTemplate = (
                   }
                 }
                 if (!currentEl) {
-                  createError("Element error: The specified DOM element is not valid or cannot be found.");
+                  createError(
+                    "Element error: The specified DOM element is not valid or cannot be found."
+                  );
                 }
                 reqEl = currentEl!;
               }
@@ -682,7 +697,10 @@ const renderTemplate = (
           let dataObj: HMPLNodeObj;
           if (!isRequest) {
             if (isDataObj || indicators) {
-              if (!currentHMPLElement) createError("Element error: The specified DOM element is not valid or cannot be found.");
+              if (!currentHMPLElement)
+                createError(
+                  "Element error: The specified DOM element is not valid or cannot be found."
+                );
               dataObj = currentHMPLElement!.objNode!;
               if (!dataObj!) {
                 dataObj = {
@@ -730,7 +748,9 @@ const renderTemplate = (
               )
             : (currentOptions as HMPLRequestInit);
           if (!checkObject(requestInit) && requestInit !== undefined)
-            createError("RequestInit type error: Expected an object with initialization options.");
+            createError(
+              "RequestInit type error: Expected an object with initialization options."
+            );
           makeRequest(
             reqEl,
             reqMainEl,
@@ -865,7 +885,9 @@ const renderTemplate = (
           const currentIndex = Number(value);
           const currentRequest = requests[currentIndex];
           if (Number.isNaN(currentIndex) || currentRequest === undefined) {
-            createError("Request index error: The request index is out of range or invalid.");
+            createError(
+              "Request index error: The request index is out of range or invalid."
+            );
           }
           currentRequest.el = currrentElement as Comment;
           currentRequest.nodeId = id;
@@ -942,7 +964,9 @@ const validOptions = (
     !checkFunction(currentOptions) &&
     currentOptions !== undefined
   )
-    createError("RequestInit type error: Expected an object with initialization options.");
+    createError(
+      "RequestInit type error: Expected an object with initialization options."
+    );
   if (isObject && (currentOptions as HMPLRequestInit).get) {
     if (!checkFunction((currentOptions as HMPLRequestInit).get)) {
       createError("The get property has a function value");
@@ -951,7 +975,10 @@ const validOptions = (
 };
 const validAutoBody = (autoBody: boolean | HMPLAutoBodyOptions) => {
   const isObject = checkObject(autoBody);
-  if (typeof autoBody !== "boolean" && !isObject) createError("AutoBody error: Expected a boolean or object, but got neither.");
+  if (typeof autoBody !== "boolean" && !isObject)
+    createError(
+      "AutoBody error: Expected a boolean or object, but got neither."
+    );
   if (isObject) {
     for (const key in autoBody as HMPLAutoBodyOptions) {
       switch (key) {
@@ -972,7 +999,9 @@ const validIdOptions = (currentOptions: HMPLIdentificationRequestInit) => {
       !currentOptions.hasOwnProperty("id") ||
       !currentOptions.hasOwnProperty("value")
     ) {
-      createError("Identification options error: Missing 'id' or 'value' property.");
+      createError(
+        "Identification options error: Missing 'id' or 'value' property."
+      );
     }
   } else {
     createError("Identification options error: Invalid object format.");
@@ -1092,7 +1121,9 @@ export const compile: HMPLCompile = (
           currentBracketId++;
         } else if (isClose) {
           if (currentBracketId === -1) {
-            createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+            createError(
+              "Parse error: Invalid bracket ID detected. Please check the input format."
+            );
           }
           if (currentBracketId === 1) {
             isFinal = true;
@@ -1108,7 +1139,9 @@ export const compile: HMPLCompile = (
         } else {
           if (isFinal) {
             if (prepareText(requestText)) {
-              createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+              createError(
+                "Parse error: Invalid bracket ID detected. Please check the input format."
+              );
             }
           } else {
             newText += requestText;
@@ -1119,7 +1152,9 @@ export const compile: HMPLCompile = (
         const nextId = i + 1;
         const nextText = templateArr[nextId];
         if (nextText === undefined) {
-          createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+          createError(
+            "Parse error: Invalid bracket ID detected. Please check the input format."
+          );
         }
         const nextArr = nextText.split(BRACKET_REGEX).filter(Boolean);
         let newNextText = "";
@@ -1129,7 +1164,9 @@ export const compile: HMPLCompile = (
           const isClose = currentNextText === "}";
           if (isClose) {
             if (currentBracketId === -1) {
-              createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+              createError(
+                "Parse error: Invalid bracket ID detected. Please check the input format."
+              );
             }
             if (currentBracketId === 1) {
               isFinal = true;
@@ -1152,7 +1189,9 @@ export const compile: HMPLCompile = (
           } else {
             if (isFinal) {
               if (prepareText(currentNextText)) {
-                createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+                createError(
+                  "Parse error: Invalid bracket ID detected. Please check the input format."
+                );
               }
             } else {
               newNextText += currentNextText;
@@ -1161,7 +1200,9 @@ export const compile: HMPLCompile = (
         }
       }
       if (currentBracketId !== -1) {
-        createError("Parse error: Invalid bracket ID detected. Please check the input format.");
+        createError(
+          "Parse error: Invalid bracket ID detected. Please check the input format."
+        );
       }
     } else {
       stringIndex += text.length;

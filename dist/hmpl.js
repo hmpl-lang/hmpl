@@ -77,7 +77,10 @@
       return elWrapper;
     };
     const getResponseElements = (response) => {
-      if (typeof response !== "string") createError("Bad response");
+      if (typeof response !== "string")
+        createError(
+          "Bad response: Expected a string, but received an invalid type."
+        );
       const elWrapper = getTemplateWrapper(response);
       const elContent = elWrapper["content"];
       const scripts = elContent.querySelectorAll("script");
@@ -151,7 +154,7 @@
         initRequest.window = windowOption;
       }
       if (options.keepalive !== undefined) {
-        createWarning("keepalive property is not yet supported");
+        createWarning("The 'keepalive' property is not yet supported");
       }
       if (headers) {
         if (checkObject(headers)) {
@@ -165,12 +168,14 @@
                 throw e;
               }
             } else {
-              createError(`Header has no string value`);
+              createError("Header error: The header value must be a string.");
             }
           }
           initRequest.headers = newHeaders;
         } else {
-          createError(`The "header" property does not have a value object`);
+          createError(
+            'Header error: The "header" property must contain a value object.'
+          );
         }
       }
       if (timeout) {
@@ -203,7 +208,7 @@
           const nodes = newContent.content.childNodes;
           if (dataObj.nodes) {
             const parentNode = dataObj.parentNode;
-            if (!parentNode) createError("parentNode is null");
+            if (!parentNode) createError("ParentNode is null");
             const newNodes = [];
             const nodesLength = dataObj.nodes.length;
             for (let i = 0; i < nodesLength; i++) {
@@ -351,7 +356,7 @@
       const takeNodesFromCache = () => {
         if (dataObj.memo.isPending) {
           const parentNode = dataObj.parentNode;
-          if (!parentNode) createError("parentNode is null");
+          if (!parentNode) createError("ParentNode is null");
           const memoNodes = dataObj.memo.nodes;
           const currentNodes = dataObj.nodes;
           const nodesLength = currentNodes.length;
@@ -488,7 +493,7 @@
                 if (req.memo) {
                   if (!isAll) {
                     createError(
-                      "memoization works in the enabled repetition mode"
+                      "Memoization works in the enabled repetition mode"
                     );
                   } else {
                     isMemo = true;
@@ -497,7 +502,7 @@
                   isMemo = false;
                 }
               } else {
-                createError("memoization works in the enabled repetition mode");
+                createError("Memoization works in the enabled repetition mode");
               }
             } else {
               if (isMemo) {
@@ -552,15 +557,23 @@
             if (indicators) {
               const parseIndicator = (val) => {
                 const { trigger, content } = val;
-                if (!trigger) createError("Indicator trigger error");
-                if (!content) createError("Indicator content error");
+                if (!trigger)
+                  createError(
+                    "Indicator trigger error: Failed to activate or detect the indicator."
+                  );
+                if (!content)
+                  createError(
+                    "Indicator trigger error: Failed to activate or detect the indicator."
+                  );
                 if (
                   codes.indexOf(trigger) === -1 &&
                   trigger !== "pending" &&
                   trigger !== "rejected" &&
                   trigger !== "error"
                 ) {
-                  createError("Indicator trigger error");
+                  createError(
+                    "Indicator trigger error: Failed to activate or detect the indicator."
+                  );
                 }
                 const elWrapper = getTemplateWrapper(content);
                 return {
@@ -594,14 +607,14 @@
                     }
                   }
                   if (!result) {
-                    createError("id referenced by request not found");
+                    createError("ID referenced by request not found");
                   }
                   return result;
                 } else {
                   return {};
                 }
               } else {
-                if (initId) createError("id referenced by request not found");
+                if (initId) createError("ID referenced by request not found");
                 return options;
               }
             };
@@ -637,7 +650,9 @@
                       }
                     }
                     if (!currentEl) {
-                      createError("Element error");
+                      createError(
+                        "Element error: The specified DOM element is not valid or cannot be found."
+                      );
                     }
                     reqEl = currentEl;
                   }
@@ -646,7 +661,10 @@
               let dataObj;
               if (!isRequest) {
                 if (isDataObj || indicators) {
-                  if (!currentHMPLElement) createError("Element error");
+                  if (!currentHMPLElement)
+                    createError(
+                      "Element error: The specified DOM element is not valid or cannot be found."
+                    );
                   dataObj = currentHMPLElement.objNode;
                   if (!dataObj) {
                     dataObj = {
@@ -693,7 +711,9 @@
                 ? getRequestInitFromFn(currentOptions, event)
                 : currentOptions;
               if (!checkObject(requestInit) && requestInit !== undefined)
-                createError("RequestInit error");
+                createError(
+                  "RequestInit type error: Expected an object with initialization options."
+                );
               makeRequest(
                 reqEl,
                 reqMainEl,
@@ -826,7 +846,9 @@
               const currentIndex = Number(value);
               const currentRequest = requests[currentIndex];
               if (Number.isNaN(currentIndex) || currentRequest === undefined) {
-                createError("Request index error");
+                createError(
+                  "Request index error: The request index is out of range or invalid."
+                );
               }
               currentRequest.el = currrentElement;
               currentRequest.nodeId = id;
@@ -887,7 +909,7 @@
         } else {
           const currentRequest = requests[0];
           if (currentRequest.el.parentNode === null) {
-            createError(`"parentNode" is null`);
+            createError('"ParentNode" is null');
           }
           reqFn = renderRequest(currentRequest, currentEl);
         }
@@ -901,7 +923,9 @@
         !checkFunction(currentOptions) &&
         currentOptions !== undefined
       )
-        createError("RequestInit type error");
+        createError(
+          "RequestInit type error: Expected an object with initialization options."
+        );
       if (isObject && currentOptions.get) {
         if (!checkFunction(currentOptions.get)) {
           createError("The get property has a function value");
@@ -911,16 +935,18 @@
     const validAutoBody = (autoBody) => {
       const isObject = checkObject(autoBody);
       if (typeof autoBody !== "boolean" && !isObject)
-        createError("autoBody error");
+        createError(
+          "AutoBody error: Expected a boolean or object, but got neither."
+        );
       if (isObject) {
         for (const key in autoBody) {
           switch (key) {
             case FORM_DATA:
               if (typeof autoBody[FORM_DATA] !== "boolean")
-                createError("formData error");
+                createError("FormData error: 'FORM_DATA' should be a boolean.");
               break;
             default:
-              createError("autoBody error");
+              createError(`AutoBody error: Unexpected property '${key}'.`);
               break;
           }
         }
@@ -932,40 +958,40 @@
           !currentOptions.hasOwnProperty("id") ||
           !currentOptions.hasOwnProperty("value")
         ) {
-          createError("Identification options error");
+          createError(
+            "Identification options error: Missing 'id' or 'value' property."
+          );
         }
       } else {
-        createError("Identification options error");
+        createError("Identification options error: Invalid object format.");
       }
     };
     const validIdentificationOptionsArray = (currentOptions) => {
       const ids = [];
       for (let i = 0; i < currentOptions.length; i++) {
         const idOptions = currentOptions[i];
-        if (!checkObject(idOptions)) createError(`options is of type "object"`);
+        if (!checkObject(idOptions)) createError(`Options is of type "object"`);
         validIdOptions(idOptions);
         const { id } = idOptions;
         if (
           typeof idOptions.id !== "string" &&
           typeof idOptions.id !== "number"
         )
-          createError(`Id must be a "string" or a "number".`);
+          createError(`ID must be a "string" or a "number".`);
         if (ids.indexOf(id) > -1) {
-          createError(`id with value "${id}" already exists`);
+          createError(`ID with value "${id}" already exists`);
         } else {
           ids.push(id);
         }
       }
     };
-
     const stringify = (info) => {
       return JSON.stringify(info);
     };
-
     const compile = (template, options = {}) => {
       if (typeof template !== "string")
         createError(
-          "template was not found or the type of the passed value is not string"
+          "Template was not found or the type of the passed value is not string"
         );
       if (!template) createError("template empty");
       if (!checkObject(options)) createError("Options must be an object");
@@ -1058,7 +1084,9 @@
               currentBracketId++;
             } else if (isClose) {
               if (currentBracketId === -1) {
-                createError("Parse error");
+                createError(
+                  "Parse error: Invalid bracket ID detected. Please check the input format."
+                );
               }
               if (currentBracketId === 1) {
                 isFinal = true;
@@ -1074,7 +1102,9 @@
             } else {
               if (isFinal) {
                 if (prepareText(requestText)) {
-                  createError("Parse error");
+                  createError(
+                    "Parse error: Invalid bracket ID detected. Please check the input format."
+                  );
                 }
               } else {
                 newText += requestText;
@@ -1085,7 +1115,9 @@
             const nextId = i + 1;
             const nextText = templateArr[nextId];
             if (nextText === undefined) {
-              createError("Parse error");
+              createError(
+                "Parse error: Invalid bracket ID detected. Please check the input format."
+              );
             }
             const nextArr = nextText.split(BRACKET_REGEX).filter(Boolean);
             let newNextText = "";
@@ -1095,7 +1127,9 @@
               const isClose = currentNextText === "}";
               if (isClose) {
                 if (currentBracketId === -1) {
-                  createError("Parse error");
+                  createError(
+                    "Parse error: Invalid bracket ID detected. Please check the input format."
+                  );
                 }
                 if (currentBracketId === 1) {
                   isFinal = true;
@@ -1118,7 +1152,9 @@
               } else {
                 if (isFinal) {
                   if (prepareText(currentNextText)) {
-                    createError("Parse error");
+                    createError(
+                      "Parse error: Invalid bracket ID detected. Please check the input format."
+                    );
                   }
                 } else {
                   newNextText += currentNextText;
@@ -1127,7 +1163,9 @@
             }
           }
           if (currentBracketId !== -1) {
-            createError("Parse error");
+            createError(
+              "Parse error: Invalid bracket ID detected. Please check the input format."
+            );
           }
         } else {
           stringIndex += text.length;
