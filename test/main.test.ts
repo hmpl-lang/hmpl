@@ -5,12 +5,12 @@ describe("compile function", () => {
   it("should throw error if template is not a string", () => {
     assert.throws(() => compile(123 as any), {
       message:
-        "template was not found or the type of the passed value is not string"
+        "Template was not found or the type of the passed value is not string"
     });
   });
 
   it("should throw error if template is empty", () => {
-    assert.throws(() => compile(""), { message: "template empty" });
+    assert.throws(() => compile(""), { message: "Template not found" });
   });
 
   it("should throw error if options is not an object", () => {

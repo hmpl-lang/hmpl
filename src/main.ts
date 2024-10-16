@@ -93,7 +93,7 @@ const getTemplateWrapper = (str: string) => {
 };
 
 const getResponseElements = (response: string) => {
-  if (typeof response !== "string") createError("Bad response");
+  if (typeof response !== "string") createError("Bad response: Expected a string, but received an invalid type.");
   const elWrapper = getTemplateWrapper(response);
   const elContent = elWrapper!["content"];
   const scripts = elContent.querySelectorAll("script");
@@ -168,7 +168,7 @@ const makeRequest = (
     initRequest.window = windowOption;
   }
   if ((options as any).keepalive !== undefined) {
-    createWarning("keepalive property is not yet supported");
+    createWarning("The 'keepalive' property is not yet supported");
   }
   if (headers) {
     if (checkObject(headers)) {
@@ -182,12 +182,12 @@ const makeRequest = (
             throw e;
           }
         } else {
-          createError(`Header has no string value`);
+          createError("Header error: The header value must be a string.");
         }
       }
       initRequest.headers = newHeaders;
     } else {
-      createError(`The "header" property does not have a value object`);
+      createError('Header error: The "header" property must contain a value object.');
     }
   }
   if (timeout) {
@@ -226,7 +226,7 @@ const makeRequest = (
       const nodes = (newContent as HTMLTemplateElement).content.childNodes;
       if (dataObj!.nodes) {
         const parentNode = dataObj!.parentNode! as ParentNode;
-        if (!parentNode) createError("parentNode is null");
+        if (!parentNode) createError("ParentNode is null");
         const newNodes: ChildNode[] = [];
         const nodesLength = dataObj!.nodes.length;
         for (let i = 0; i < nodesLength; i++) {
@@ -374,7 +374,7 @@ const makeRequest = (
   const takeNodesFromCache = () => {
     if (dataObj!.memo!.isPending) {
       const parentNode = dataObj!.parentNode! as ParentNode;
-      if (!parentNode) createError("parentNode is null");
+      if (!parentNode) createError("ParentNode is null");
       const memoNodes = dataObj!.memo!.nodes!;
       const currentNodes = dataObj!.nodes!;
       const nodesLength = currentNodes!.length;
@@ -515,7 +515,7 @@ const renderTemplate = (
           if (after) {
             if (req.memo) {
               if (!isAll) {
-                createError("memoization works in the enabled repetition mode");
+                createError("Memoization works in the enabled repetition mode");
               } else {
                 isMemo = true;
               }
@@ -523,7 +523,7 @@ const renderTemplate = (
               isMemo = false;
             }
           } else {
-            createError("memoization works in the enabled repetition mode");
+            createError("Memoization works in the enabled repetition mode");
           }
         } else {
           if (isMemo) {
@@ -574,15 +574,15 @@ const renderTemplate = (
         if (indicators) {
           const parseIndicator = (val: HMPLIndicator) => {
             const { trigger, content } = val;
-            if (!trigger) createError("Indicator trigger error");
-            if (!content) createError("Indicator content error");
+            if (!trigger) createError("Indicator trigger error: Failed to activate or detect the indicator.");
+            if (!content) createError("Indicator trigger error: Failed to activate or detect the indicator.");
             if (
               codes.indexOf(trigger as number) === -1 &&
               trigger !== "pending" &&
               trigger !== "rejected" &&
               trigger !== "error"
             ) {
-              createError("Indicator trigger error");
+              createError("Indicator trigger error: Failed to activate or detect the indicator.");
             }
             const elWrapper = getTemplateWrapper(
               content
@@ -630,14 +630,14 @@ const renderTemplate = (
                 }
               }
               if (!result) {
-                createError("id referenced by request not found");
+                createError("ID referenced by request not found");
               }
               return result as HMPLRequestInit;
             } else {
               return {};
             }
           } else {
-            if (initId) createError("id referenced by request not found");
+            if (initId) createError("ID referenced by request not found");
             return options as HMPLRequestInit;
           }
         };
@@ -673,7 +673,7 @@ const renderTemplate = (
                   }
                 }
                 if (!currentEl) {
-                  createError("Element error");
+                  createError("Element error: The specified DOM element is not valid or cannot be found.");
                 }
                 reqEl = currentEl!;
               }
@@ -682,7 +682,7 @@ const renderTemplate = (
           let dataObj: HMPLNodeObj;
           if (!isRequest) {
             if (isDataObj || indicators) {
-              if (!currentHMPLElement) createError("Element error");
+              if (!currentHMPLElement) createError("Element error: The specified DOM element is not valid or cannot be found.");
               dataObj = currentHMPLElement!.objNode!;
               if (!dataObj!) {
                 dataObj = {
@@ -730,7 +730,7 @@ const renderTemplate = (
               )
             : (currentOptions as HMPLRequestInit);
           if (!checkObject(requestInit) && requestInit !== undefined)
-            createError("RequestInit error");
+            createError("RequestInit type error: Expected an object with initialization options.");
           makeRequest(
             reqEl,
             reqMainEl,
@@ -865,7 +865,7 @@ const renderTemplate = (
           const currentIndex = Number(value);
           const currentRequest = requests[currentIndex];
           if (Number.isNaN(currentIndex) || currentRequest === undefined) {
-            createError("Request index error");
+            createError("Request index error: The request index is out of range or invalid.");
           }
           currentRequest.el = currrentElement as Comment;
           currentRequest.nodeId = id;
@@ -926,7 +926,7 @@ const renderTemplate = (
     } else {
       const currentRequest = requests[0];
       if (currentRequest.el!.parentNode === null) {
-        createError(`"parentNode" is null`);
+        createError('"ParentNode" is null');
       }
       reqFn = renderRequest(currentRequest, currentEl as Element);
     }
@@ -942,7 +942,7 @@ const validOptions = (
     !checkFunction(currentOptions) &&
     currentOptions !== undefined
   )
-    createError("RequestInit type error");
+    createError("RequestInit type error: Expected an object with initialization options.");
   if (isObject && (currentOptions as HMPLRequestInit).get) {
     if (!checkFunction((currentOptions as HMPLRequestInit).get)) {
       createError("The get property has a function value");
@@ -951,16 +951,16 @@ const validOptions = (
 };
 const validAutoBody = (autoBody: boolean | HMPLAutoBodyOptions) => {
   const isObject = checkObject(autoBody);
-  if (typeof autoBody !== "boolean" && !isObject) createError("autoBody error");
+  if (typeof autoBody !== "boolean" && !isObject) createError("AutoBody error: Expected a boolean or object, but got neither.");
   if (isObject) {
     for (const key in autoBody as HMPLAutoBodyOptions) {
       switch (key) {
         case FORM_DATA:
           if (typeof autoBody[FORM_DATA] !== "boolean")
-            createError("formData error");
+            createError("FormData error: 'FORM_DATA' should be a boolean.");
           break;
         default:
-          createError("autoBody error");
+          createError(`AutoBody error: Unexpected property '${key}'.`);
           break;
       }
     }
@@ -972,10 +972,10 @@ const validIdOptions = (currentOptions: HMPLIdentificationRequestInit) => {
       !currentOptions.hasOwnProperty("id") ||
       !currentOptions.hasOwnProperty("value")
     ) {
-      createError("Identification options error");
+      createError("Identification options error: Missing 'id' or 'value' property.");
     }
   } else {
-    createError("Identification options error");
+    createError("Identification options error: Invalid object format.");
   }
 };
 const validIdentificationOptionsArray = (
@@ -984,13 +984,13 @@ const validIdentificationOptionsArray = (
   const ids: Array<string | number> = [];
   for (let i = 0; i < currentOptions.length; i++) {
     const idOptions = currentOptions[i];
-    if (!checkObject(idOptions)) createError(`options is of type "object"`);
+    if (!checkObject(idOptions)) createError(`Options is of type "object"`);
     validIdOptions(idOptions);
     const { id } = idOptions;
     if (typeof idOptions.id !== "string" && typeof idOptions.id !== "number")
-      createError(`Id must be a "string" or a "number".`);
+      createError(`ID must be a "string" or a "number".`);
     if (ids.indexOf(id) > -1) {
-      createError(`id with value "${id}" already exists`);
+      createError(`ID with value "${id}" already exists`);
     } else {
       ids.push(id);
     }
@@ -1007,7 +1007,7 @@ export const compile: HMPLCompile = (
 ) => {
   if (typeof template !== "string")
     createError(
-      "template was not found or the type of the passed value is not string"
+      "Template was not found or the type of the passed value is not string"
     );
   if (!template) createError("template empty");
   if (!checkObject(options)) createError("Options must be an object");
@@ -1092,7 +1092,7 @@ export const compile: HMPLCompile = (
           currentBracketId++;
         } else if (isClose) {
           if (currentBracketId === -1) {
-            createError("Parse error");
+            createError("Parse error: Invalid bracket ID detected. Please check the input format.");
           }
           if (currentBracketId === 1) {
             isFinal = true;
@@ -1108,7 +1108,7 @@ export const compile: HMPLCompile = (
         } else {
           if (isFinal) {
             if (prepareText(requestText)) {
-              createError("Parse error");
+              createError("Parse error: Invalid bracket ID detected. Please check the input format.");
             }
           } else {
             newText += requestText;
@@ -1119,7 +1119,7 @@ export const compile: HMPLCompile = (
         const nextId = i + 1;
         const nextText = templateArr[nextId];
         if (nextText === undefined) {
-          createError("Parse error");
+          createError("Parse error: Invalid bracket ID detected. Please check the input format.");
         }
         const nextArr = nextText.split(BRACKET_REGEX).filter(Boolean);
         let newNextText = "";
@@ -1129,7 +1129,7 @@ export const compile: HMPLCompile = (
           const isClose = currentNextText === "}";
           if (isClose) {
             if (currentBracketId === -1) {
-              createError("Parse error");
+              createError("Parse error: Invalid bracket ID detected. Please check the input format.");
             }
             if (currentBracketId === 1) {
               isFinal = true;
@@ -1152,7 +1152,7 @@ export const compile: HMPLCompile = (
           } else {
             if (isFinal) {
               if (prepareText(currentNextText)) {
-                createError("Parse error");
+                createError("Parse error: Invalid bracket ID detected. Please check the input format.");
               }
             } else {
               newNextText += currentNextText;
@@ -1161,7 +1161,7 @@ export const compile: HMPLCompile = (
         }
       }
       if (currentBracketId !== -1) {
-        createError("Parse error");
+        createError("Parse error: Invalid bracket ID detected. Please check the input format.");
       }
     } else {
       stringIndex += text.length;
