@@ -10,7 +10,9 @@ describe("compile function", () => {
   });
 
   it("should throw error if template is empty", () => {
-    assert.throws(() => compile(""), { message: "Template not found" });
+    assert.throws(() => compile(""), {
+      message: "Template must not be a falsey value"
+    });
   });
 
   it("should throw error if options is not an object", () => {

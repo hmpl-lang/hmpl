@@ -1038,7 +1038,7 @@ export const compile: HMPLCompile = (
     createError(
       "Template was not found or the type of the passed value is not string"
     );
-  if (!template) createError("template empty");
+  if (!template) createError("Template must not be a falsey value");
   if (!checkObject(options)) createError("Options must be an object");
   const isMemoUndefined = !options.hasOwnProperty(MEMO);
   if (!isMemoUndefined && typeof options[MEMO] !== "boolean")
