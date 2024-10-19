@@ -17,9 +17,7 @@
 </div>
 <br/>
 
-## In short, about
-
-Best alternative to htmx and alpine.js
+<div align="center"><em>Best alternative to htmx and alpine.js</em></div>
 
 ## About
 
