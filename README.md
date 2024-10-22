@@ -86,12 +86,12 @@ const templateFn = compile(
       <input type="submit" value="Register!" />
     </div>
   </form>
-  <p>Email {
+  <p>{
     {
       "src":"/api/register",
       "after":"submit:#form",
     }
-  } successfully registered!</p>
+  }</p>
 </div>`
 );
 const initFn = (ctx) => {
