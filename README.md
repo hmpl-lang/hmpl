@@ -72,8 +72,8 @@
 
 ## Example #2
 
-```typescript
-import { compile ) from "hmpl-js";
+```javascript
+import { compile } from "hmpl-js";
 
 const templateFn = compile(
   `<div>
@@ -90,7 +90,13 @@ const templateFn = compile(
     {
       {
         "src":"/api/register",
-        "after":"submit:#form"
+        "after":"submit:#form",
+        "indicators": [
+          {
+            "trigger": "pending",
+            "content": "<p>Loading...</p>"
+          }
+        ]
       }
     }
   </p>
@@ -98,15 +104,16 @@ const templateFn = compile(
 );
 const initFn = (ctx) => {
   const event = ctx.request.event;
-  
+
   return {
     body: new FormData(event.target, event.submitter),
-    credentials: "same-origin"
+    credentials: "same-origin",
   };
 };
 const obj = templateFn(initFn);
 const wrapper = document.getElementById("wrapper");
 wrapper.appendChild(obj.response);
+```
 ```
 
 ## Why hmpl?
@@ -209,7 +216,7 @@ After installation using any convenient method described in [Installation](https
 
 Or, if you need to work with hmpl as a module, there is a list of imported functions, such as `compile`:
 
-```typescript
+```javascript
 import { compile } from "hmpl-js";
 const templateFn = compile(
   `{ 
