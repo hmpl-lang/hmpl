@@ -73,38 +73,38 @@
 ## Example #2
 
 ```typescript
-import { compile } from "hmpl-js";
+import { compile ) from "hmpl-js";
 
 const templateFn = compile(
-  `{ 
-     {
-       "src": "/api/test",
-       "indicators": [
-           {
-             "trigger": "pending",
-             "content": "<div>Loading...</div>"
-           },
-           {
-             "trigger": "rejected",
-             "content": "<div>Error</div>"
-           }
-       ] 
-     } 
-   }`
-);
-
-const wrapper = document.getElementById("wrapper");
-
-const elementObj = templateFn({
-  credentials: "same-origin",
-  get: (prop, value) => {
-    if (prop === "response") {
-      if (value) {
-        wrapper.appendChild(value.content);
-      }
+  `<div>
+  <form onsubmit="function prevent(e){e.preventDefault();};return prevent(event);" id="form">
+    <div class="form-example">
+      <label for="name">Enter your email: </label>
+      <input type="text" name="email" id="email" required />
+    </div>
+    <div class="form-example">
+      <input type="submit" value="Register!" />
+    </div>
+  </form>
+  <p>Email {
+    {
+      "src":"/api/register",
+      "after":"submit:#form",
     }
-  },
-});
+  } successfully registered!</p>
+</div>`
+);
+const initFn = (ctx) => {
+  const event = ctx.request.event;
+  
+  return {
+    body: new FormData(event.target, event.submitter),
+    credentials: "same-origin"
+  };
+};
+const obj = templateFn(initFn);
+const wrapper = document.getElementById("wrapper");
+wrapper.appendChild(obj.response);
 ```
 
 ## Why hmpl?
