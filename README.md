@@ -90,7 +90,7 @@ const templateFn = compile(
     {
       {
         "src":"/api/register",
-        "after":"submit:#form",
+        "after":"submit:#form"
       }
     }
   </p>
