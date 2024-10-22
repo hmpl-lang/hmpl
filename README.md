@@ -80,7 +80,7 @@ const templateFn = compile(
   <form onsubmit="function prevent(e){e.preventDefault();};return prevent(event);" id="form">
     <div class="form-example">
       <label for="name">Enter your email: </label>
-      <input type="text" name="email" id="email" required />
+      <input type="email" name="email" id="email" required />
     </div>
     <div class="form-example">
       <input type="submit" value="Register!" />
@@ -91,6 +91,7 @@ const templateFn = compile(
       {
         "src":"/api/register",
         "after":"submit:#form",
+        "repeat":false,
         "indicators": [
           {
             "trigger": "pending",
