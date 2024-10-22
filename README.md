@@ -114,7 +114,6 @@ const obj = templateFn(initFn);
 const wrapper = document.getElementById("wrapper");
 wrapper.appendChild(obj.response);
 ```
-```
 
 ## Why hmpl?
 
