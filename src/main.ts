@@ -275,7 +275,7 @@ const makeRequest = (
     } else {
       if (dataObj!.nodes) {
         const parentNode = dataObj!.parentNode! as ParentNode;
-        if (!parentNode) createError("parentNode is null");
+        if (!parentNode) createError("Render error: parentNode is null");
         const nodesLength = dataObj!.nodes.length;
         for (let i = 0; i < nodesLength; i++) {
           const node = dataObj!.nodes[i];
@@ -378,7 +378,7 @@ const makeRequest = (
   const takeNodesFromCache = () => {
     if (dataObj!.memo!.isPending) {
       const parentNode = dataObj!.parentNode! as ParentNode;
-      if (!parentNode) createError("ParentNode is null");
+      if (!parentNode) createError("Render error: parentNode is null");
       const memoNodes = dataObj!.memo!.nodes!;
       const currentNodes = dataObj!.nodes!;
       const nodesLength = currentNodes!.length;
@@ -408,7 +408,7 @@ const makeRequest = (
       requestStatus = response.status as HMPLRequestStatus;
       updateStatusDepenencies(requestStatus);
       if (!response.ok) {
-        createError(`Request error with code ${requestStatus}`);
+        createError(`Response error: Response with status code ${requestStatus}`);
       }
       return response.text();
     })
@@ -501,7 +501,7 @@ const renderTemplate = (
       const method = (req.method || "GET").toLowerCase();
       if (getIsMethodValid(method)) {
         createError(
-          `${METHOD} has only GET, POST, PUT, PATCH or DELETE values`
+          `Request Object error: ${METHOD} has only GET, POST, PUT, PATCH or DELETE values`
         );
       } else {
         const after = req.after;
@@ -527,7 +527,7 @@ const renderTemplate = (
               isMemo = false;
             }
           } else {
-            createError("Memoization works in the enabled repetition mode");
+            createError("Request Object error: Memoization works in the enabled repetition mode");
           }
         } else {
           if (isMemo) {
@@ -580,11 +580,11 @@ const renderTemplate = (
             const { trigger, content } = val;
             if (!trigger)
               createError(
-                "Indicator trigger error: Failed to activate or detect the indicator."
+                "Request Object error: Indicator trigger error: Failed to activate or detect the indicator."
               );
             if (!content)
               createError(
-                "Indicator trigger error: Failed to activate or detect the indicator."
+                "Request Object error: Indicator trigger error: Failed to activate or detect the indicator."
               );
             if (
               codes.indexOf(trigger as number) === -1 &&
@@ -593,7 +593,7 @@ const renderTemplate = (
               trigger !== "error"
             ) {
               createError(
-                "Indicator trigger error: Failed to activate or detect the indicator."
+                "Request Object error: Failed to activate or detect the indicator."
               );
             }
             const elWrapper = getTemplateWrapper(
@@ -612,7 +612,7 @@ const renderTemplate = (
             if (uniqueTriggers.indexOf(trigger) === -1) {
               uniqueTriggers.push(trigger);
             } else {
-              createError("Indicator trigger must be unique");
+              createError("Request Object error: Indicator trigger must be unique");
             }
             newOn[`${trigger}`] = currentIndicator.content;
           }
@@ -642,14 +642,14 @@ const renderTemplate = (
                 }
               }
               if (!result) {
-                createError("ID referenced by request not found");
+                createError("Request Object error: ID referenced by request not found");
               }
               return result as HMPLRequestInit;
             } else {
               return {};
             }
           } else {
-            if (initId) createError("ID referenced by request not found");
+            if (initId) createError("Request Object error: ID referenced by request not found");
             return options as HMPLRequestInit;
           }
         };
@@ -686,7 +686,7 @@ const renderTemplate = (
                 }
                 if (!currentEl) {
                   createError(
-                    "Element error: The specified DOM element is not valid or cannot be found."
+                    "Parse error: The specified DOM element is not valid or cannot be found."
                   );
                 }
                 reqEl = currentEl!;
@@ -698,7 +698,7 @@ const renderTemplate = (
             if (isDataObj || indicators) {
               if (!currentHMPLElement)
                 createError(
-                  "Element error: The specified DOM element is not valid or cannot be found."
+                  "Parse error: The specified DOM element is not valid or cannot be found."
                 );
               dataObj = currentHMPLElement!.objNode!;
               if (!dataObj!) {
@@ -785,7 +785,7 @@ const renderTemplate = (
           ) => {
             const els = reqMainEl!.querySelectorAll(selector);
             if (els.length === 0) {
-              createError("Selectors nodes not found");
+              createError("Node error: Selectors nodes not found");
             }
             const afterFn = isAll
               ? (evt: Event) => {
@@ -855,17 +855,17 @@ const renderTemplate = (
               );
             };
           } else {
-            createError(`${AFTER} property doesn't work without EventTargets`);
+            createError(`Request Object error: ${AFTER} property doesn't work without EventTargets`);
           }
         } else {
           if (!isModeUndefined) {
-            createError(`${MODE} property doesn't work without ${AFTER}`);
+            createError(`Request Object error: ${MODE} property doesn't work without ${AFTER}`);
           }
         }
         return requestFunction;
       }
     } else {
-      createError(`The "source" property are not found or empty`);
+      createError(`Request Object error: The "source" property are not found or empty`);
     }
   };
 
@@ -885,7 +885,7 @@ const renderTemplate = (
           const currentRequest = requests[currentIndex];
           if (Number.isNaN(currentIndex) || currentRequest === undefined) {
             createError(
-              "Request index error: The request index is out of range or invalid."
+              "Request Object error: The request index is out of range or invalid."
             );
           }
           currentRequest.el = currrentElement as Comment;
