@@ -95,7 +95,7 @@ const getTemplateWrapper = (str: string) => {
 const getResponseElements = (response: string) => {
   if (typeof response !== "string")
     createError(
-      "Bad response: Expected a string, but received an invalid type."
+      "Bad response: Expected type string, but received type {type}."
     );
   const elWrapper = getTemplateWrapper(response);
   const elContent = elWrapper!["content"];
@@ -171,7 +171,7 @@ const makeRequest = (
     initRequest.window = windowOption;
   }
   if ((options as any).keepalive !== undefined) {
-    createWarning("The 'keepalive' property is not yet supported");
+    createWarning("RequestInit error: The 'keepalive' property is not yet supported");
   }
   if (headers) {
     if (checkObject(headers)) {
@@ -185,13 +185,12 @@ const makeRequest = (
             throw e;
           }
         } else {
-          createError("Header error: The header value must be a string.");
+          createError("RequestInit error: Expected type string, but received type {type}.");
         }
-      }
-      initRequest.headers = newHeaders;
+    initRequest.headers = newHeaders;
     } else {
       createError(
-        'Header error: The "header" property must contain a value object.'
+        'RequestInit error: Property must contain a value object.'
       );
     }
   }
@@ -200,7 +199,7 @@ const makeRequest = (
       initRequest.signal = AbortSignal.timeout(timeout);
     } else {
       createWarning(
-        "The signal property overwrote the AbortSignal from timeout"
+        "RequestInit error: The signal property overwrote the AbortSignal from timeout"
       );
     }
   }
