@@ -686,7 +686,7 @@ const renderTemplate = (
                 }
                 if (!currentEl) {
                   createError(
-                    "Parse error: The specified DOM element is not valid or cannot be found."
+                    "Render error: The specified DOM element is not valid or cannot be found."
                   );
                 }
                 reqEl = currentEl!;
@@ -698,7 +698,7 @@ const renderTemplate = (
             if (isDataObj || indicators) {
               if (!currentHMPLElement)
                 createError(
-                  "Parse error: The specified DOM element is not valid or cannot be found."
+                  "Render error: The specified DOM element is not valid or cannot be found."
                 );
               dataObj = currentHMPLElement!.objNode!;
               if (!dataObj!) {
@@ -748,7 +748,7 @@ const renderTemplate = (
             : (currentOptions as HMPLRequestInit);
           if (!checkObject(requestInit) && requestInit !== undefined)
             createError(
-              "RequestInit type error: Expected an object with initialization options."
+              "RequestInit error: Expected an object with initialization options."
             );
           makeRequest(
             reqEl,
@@ -785,7 +785,7 @@ const renderTemplate = (
           ) => {
             const els = reqMainEl!.querySelectorAll(selector);
             if (els.length === 0) {
-              createError("Node error: Selectors nodes not found");
+              createError("Render error: Selectors nodes not found");
             }
             const afterFn = isAll
               ? (evt: Event) => {
@@ -923,7 +923,7 @@ const renderTemplate = (
           const hmplElement = els[i];
           const currentReqEl = hmplElement.el;
           if (currentReqEl.parentNode === null) {
-            createError(`"parentNode" is null`);
+            createError(`Render error: "parentNode" is null`);
           }
           const currentReqFn = algorithm[i];
           const currentReq: HMPLRequest = {
@@ -947,7 +947,7 @@ const renderTemplate = (
     } else {
       const currentRequest = requests[0];
       if (currentRequest.el!.parentNode === null) {
-        createError('"ParentNode" is null');
+        createError('Render error: "ParentNode" is null');
       }
       reqFn = renderRequest(currentRequest, currentEl as Element);
     }
@@ -964,11 +964,11 @@ const validOptions = (
     currentOptions !== undefined
   )
     createError(
-      "RequestInit type error: Expected an object with initialization options."
+      "RequestInit error: Expected an object with initialization options."
     );
   if (isObject && (currentOptions as HMPLRequestInit).get) {
     if (!checkFunction((currentOptions as HMPLRequestInit).get)) {
-      createError("The get property has a function value");
+      createError("RequestInit error: The get property has a function value");
     }
   }
 };
@@ -976,17 +976,17 @@ const validAutoBody = (autoBody: boolean | HMPLAutoBodyOptions) => {
   const isObject = checkObject(autoBody);
   if (typeof autoBody !== "boolean" && !isObject)
     createError(
-      "AutoBody error: Expected a boolean or object, but got neither."
+      "Request Object error: Expected a boolean or object, but got neither."
     );
   if (isObject) {
     for (const key in autoBody as HMPLAutoBodyOptions) {
       switch (key) {
         case FORM_DATA:
           if (typeof autoBody[FORM_DATA] !== "boolean")
-            createError("FormData error: 'FORM_DATA' should be a boolean.");
+            createError("Request Object error: 'FORM_DATA' should be a boolean.");
           break;
         default:
-          createError(`AutoBody error: Unexpected property '${key}'.`);
+          createError(`Request Object error: Unexpected property '${key}'.`);
           break;
       }
     }
@@ -999,11 +999,11 @@ const validIdOptions = (currentOptions: HMPLIdentificationRequestInit) => {
       !currentOptions.hasOwnProperty("value")
     ) {
       createError(
-        "Identification options error: Missing 'id' or 'value' property."
+        "Request Object error: Missing 'id' or 'value' property."
       );
     }
   } else {
-    createError("Identification options error: Invalid object format.");
+    createError("Request Object error: Invalid object format.");
   }
 };
 const validIdentificationOptionsArray = (
@@ -1035,13 +1035,13 @@ export const compile: HMPLCompile = (
 ) => {
   if (typeof template !== "string")
     createError(
-      "Template was not found or the type of the passed value is not string"
+      "Compile error: Template was not found or the type of the passed value is not string"
     );
-  if (!template) createError("Template must not be a falsey value");
+  if (!template) createError("Compile error: Template must not be a falsey value");
   if (!checkObject(options)) createError("Options must be an object");
   const isMemoUndefined = !options.hasOwnProperty(MEMO);
   if (!isMemoUndefined && typeof options[MEMO] !== "boolean")
-    createError(`The value of the property ${MEMO} must be a boolean value`);
+    createError(`Request Object error: The value of the property ${MEMO} must be a boolean value`);
   const isAutoBodyUndefined = !options.hasOwnProperty(AUTO_BODY);
   if (!isAutoBodyUndefined) validAutoBody(options[AUTO_BODY]!);
   const requests: HMPLRequestsObject[] = [];
@@ -1050,7 +1050,7 @@ export const compile: HMPLCompile = (
   for (const match of template.matchAll(MAIN_REGEX)) {
     requestsIndexes.push(match.index);
   }
-  if (requestsIndexes.length === 0) createError(`Request not found`);
+  if (requestsIndexes.length === 0) createError(`Compile error: Request not found`);
   const prepareText = (text: string) => {
     text = text.trim();
     text = text.replace(/\r?\n|\r/g, "");
